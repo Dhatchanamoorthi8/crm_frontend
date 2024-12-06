@@ -42,6 +42,10 @@ const Stack = createStackNavigator()
 export default function App () {
   const navigationRef = useNavigationContainerRef()
 
+
+  console.log("hiii");
+  
+
   useReduxDevToolsExtension(navigationRef)
 
   const [loaded, error] = useFonts({
