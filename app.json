@@ -1,0 +1,79 @@
+{
+  "expo": {
+    "name": "Vingro Crm",
+    "slug": "Vingro Crm",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/screen.png",
+    "assetBundlePatterns": [
+      "**/*",
+      "./assets/fonts/*"
+    ],
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/screen.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ],[
+        "expo-notifications",
+        {
+          "icon": "./assets/screen.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app requires camera access to take photos.",
+        "NSMicrophoneUsageDescription": "This app requires microphone access to record audio.",
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/screen.png",
+        "backgroundColor": "#ffffff"
+      },
+      "usesCleartextTraffic": true,
+      "package": "com.liveattendance.app",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyA3aVYhBvhxeuW9gm8BfsVmdCVmYhHhQ00"
+        }
+      },
+      "newArchEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/screen.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "788e679b-4abb-43a6-82de-1d5b75c676c3"
+      }
+    }
+  }
+}

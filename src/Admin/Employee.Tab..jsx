@@ -1,0 +1,723 @@
+import React, { useCallback, useEffect, useState } from 'react'
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Dimensions
+} from 'react-native'
+import {
+  View,
+  Text,
+  Box,
+  Fab,
+  AddIcon,
+  FabIcon,
+  ModalHeader,
+  Heading,
+  ModalCloseButton,
+  CloseIcon,
+  InputField,
+  FormControl,
+  VStack,
+  InputSlot,
+  InputIcon,
+  Button,
+  ButtonText,
+  Menu,
+  MenuItemLabel,
+  SettingsIcon,
+  Divider,
+  MenuSeparator,
+  AlertCircleIcon
+} from '@gluestack-ui/themed'
+import EmployeeActivity from './EmployeeActivity'
+import EmployeeList from './EmployeeList'
+import { Modal } from '@gluestack-ui/themed'
+import { ModalBackdrop } from '@gluestack-ui/themed'
+import { ModalContent } from '@gluestack-ui/themed'
+import { ModalBody } from '@gluestack-ui/themed'
+import { Icon } from '@gluestack-ui/themed'
+import { Input } from '@gluestack-ui/themed'
+import { DatePickerSvg, LocationSvg } from '@/assets/Icons/SvgIcons'
+import DatePicker from '../Components/DatePicker'
+import { Keyboard } from 'react-native'
+import { ScrollView } from '@gluestack-ui/themed'
+import { MenuItem } from '@gluestack-ui/themed'
+
+import { useNavigation } from '@react-navigation/native'
+import {
+  Select,
+  SelectTrigger,
+  SelectInput,
+  SelectIcon,
+  SelectPortal,
+  SelectBackdrop,
+  SelectContent,
+  SelectDragIndicatorWrapper,
+  SelectDragIndicator,
+  SelectItem,
+  ChevronDownIcon
+} from '@gluestack-ui/themed'
+import api from '../Services/axiosConfig'
+import { FormControlErrorIcon } from '@gluestack-ui/themed'
+import { FormControlErrorText } from '@gluestack-ui/themed'
+import { HStack } from '@gluestack-ui/themed'
+import { RefreshControl } from '@gluestack-ui/themed'
+
+const { width } = Dimensions.get('window')
+
+const EmployeeTab = () => {
+  const navigation = useNavigation()
+
+  const [activeTab, setActiveTab] = useState(0)
+
+  const [showModal, setShowModal] = useState(false)
+
+  const translateX = new Animated.Value(0)
+
+  const tabs = ['List', 'Activity']
+
+  const [DatePickerOpen, setDatePickerOpen] = useState(false)
+
+  const [DesginationDropDown, setDesginationDropDown] = useState([])
+
+  const [CompanyDropDown, SetCompanyDropDown] = useState([])
+
+  const [refreshing, setRefreshing] = useState(false)
+
+  const [EmployeerRegisterData, SetEmployeerRegisterData] = useState({
+    name: '',
+    email: '',
+    DOB: '',
+    mobile: '',
+    address: '',
+    des_id: '',
+    cm_id: ''
+  })
+
+  console.log(EmployeerRegisterData)
+
+  const handleTabSwitch = (index, type) => {
+    if (type !== 'settings') {
+      setActiveTab(index)
+      Animated.spring(translateX, {
+        toValue: index * (width / 2),
+        useNativeDriver: true
+      }).start()
+    }
+  }
+
+  const handleDatepicker = async Date => {
+    SetEmployeerRegisterData(preData => ({ ...preData, DOB: Date }))
+  }
+
+  const handleChangeInput = (name, value) => {
+    const processedValue = typeof value === 'string' ? value.trim() : value
+    try {
+      SetEmployeerRegisterData(current => ({
+        ...current,
+        [name]: processedValue
+      }))
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const fetchData = async () => {
+    try {
+      const userdesgination = await api.get('userdesgination')
+      const company_fetch = await api.get('companymaster')
+      setDesginationDropDown(userdesgination.data)
+      SetCompanyDropDown(company_fetch.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    DOB: '',
+    mobile: '',
+    address: '',
+    des_id: '',
+    cm_id: ''
+  })
+
+  const validate = () => {
+    let isValid = true
+    const newErrors = {}
+
+    console.log('Validation started')
+
+    if (EmployeerRegisterData.name === '') {
+      newErrors.name = 'Name is required'
+      isValid = false
+    }
+
+    if (EmployeerRegisterData.des_id === '') {
+      newErrors.des_id = 'Employee Position is required'
+      isValid = false
+    }
+
+    if (EmployeerRegisterData.cm_id === '') {
+      newErrors.cm_id = 'Company Name is required'
+      isValid = false
+    }
+
+    if (
+      !EmployeerRegisterData.mobile ||
+      !EmployeerRegisterData.mobile.trim() ||
+      !/^\d{10}$/.test(EmployeerRegisterData.mobile.trim())
+    ) {
+      console.log('Validation failed: contact is invalid')
+      newErrors.mobile = 'Valid Contact Number is required (10 digits)'
+      isValid = false
+    }
+
+    if (
+      !EmployeerRegisterData.email ||
+      typeof EmployeerRegisterData.email !== 'string' ||
+      !EmployeerRegisterData.email.trim() ||
+      !/\S+@\S+\.\S+/.test(EmployeerRegisterData.email.trim())
+    ) {
+      console.log('Validation failed: email is invalid')
+      newErrors.email = 'Valid Email is required'
+      isValid = false
+    }
+
+    if (!EmployeerRegisterData.address.trim()) {
+      newErrors.address = 'Address is required'
+      isValid = false
+    }
+
+    if (!EmployeerRegisterData.DOB.trim()) {
+      newErrors.DOB = 'Date Of Birth is required'
+      isValid = false
+    }
+
+    setErrors(newErrors)
+    return isValid
+  }
+
+  const handleSave = async () => {
+    if (validate()) {
+      try {
+        const response = await api.post('users', EmployeerRegisterData)
+        if (response.status === 200) {
+          console.log(response.data)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    } else {
+      console.log('failed validation')
+    }
+  }
+
+  const restInputs = () => {
+    setErrors(prevData => ({
+      ...prevData,
+      name: '',
+      email: '',
+      DOB: '',
+      mobile: '',
+      address: '',
+      des_id: '',
+      cm_id: ''
+    }))
+
+    SetEmployeerRegisterData(prevData => ({
+      ...prevData,
+      name: '',
+      email: '',
+      DOB: '',
+      mobile: '',
+      address: '',
+      des_id: '',
+      cm_id: ''
+    }))
+  }
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true)
+    restInputs()
+    setTimeout(() => {
+      setRefreshing(false)
+    }, 1000)
+  }, [])
+
+  return (
+    <>
+      <View style={styles.container}>
+        <View style={styles.tabContainer}>
+          <Animated.View
+            style={[styles.activeTabIndicator, { transform: [{ translateX }] }]}
+          />
+
+          {tabs.map((tab, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.tabButton,
+                activeTab === index && styles.activeTabButton
+              ]}
+              onPress={() => handleTabSwitch(index)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === index ? styles.activeTabText : {}
+                ]}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.content}>
+          {activeTab === 0 ? (
+            <View>
+              <EmployeeList />
+            </View>
+          ) : (
+            <View>
+              <EmployeeActivity />
+            </View>
+          )}
+        </View>
+      </View>
+
+      <Menu
+        placement='top right'
+        offset={5}
+        trigger={({ ...triggerProps }) => {
+          return (
+            <Fab
+              size='lg'
+              placement='bottom right'
+              isHovered={true}
+              {...triggerProps}
+            >
+              <FabIcon as={AddIcon} />
+            </Fab>
+          )
+        }}
+        style={{ borderRadius: 10 }}
+      >
+        <MenuItem
+          key={1}
+          textValue='Add account'
+          onPress={() => setShowModal(true)}
+        >
+          <Icon as={AddIcon} size='sm' mr={'$2'} />
+          <MenuItemLabel size='sm'>Add employee</MenuItemLabel>
+        </MenuItem>
+
+        <MenuSeparator />
+
+        <MenuItem
+          key={2}
+          textValue='Settings'
+          onPress={() => navigation.navigate('adminSettings')}
+        >
+          <Icon as={SettingsIcon} size='sm' mr={'$2'} />
+          <MenuItemLabel size='sm'>Settings</MenuItemLabel>
+        </MenuItem>
+      </Menu>
+
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false)
+        }}
+        size='lg'
+        style={{ borderRadius: 50 }}
+      >
+        <ModalBackdrop />
+        <ModalContent
+          style={{
+            borderRadius: 24,
+            overflow: 'hidden',
+            backgroundColor: 'white' // Ensure background color is consistent
+          }}
+          my={'$10'}
+        >
+          <ModalHeader>
+            <Heading size='md' className='text-typography-950'>
+              Employee Profile
+            </Heading>
+            <ModalCloseButton>
+              <Icon
+                as={CloseIcon}
+                size='md'
+                className='stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900'
+              />
+            </ModalCloseButton>
+          </ModalHeader>
+          <ModalBody>
+            <ScrollView
+              mb={'$5'}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            >
+              <View>
+                <Text fontFamily='MonaSans_SemiBold' color='#0A1629'>
+                  Main info
+                </Text>
+              </View>
+
+              <FormControl p={'$2'} rounded={'$lg'}>
+                <VStack space='xl'>
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Name
+                    </Text>
+                    <Input rounded={'$xl'}>
+                      <InputField
+                        type='text'
+                        placeholder='Name'
+                        fontFamily='MonaSans_400Regular'
+                        style={{ fontSize: 15 }}
+                        onChangeText={text => handleChangeInput('name', text)}
+                        value={EmployeerRegisterData.name}
+                        defaultValue={EmployeerRegisterData.name}
+                      />
+                    </Input>
+
+                    {errors.name && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} />
+                        <FormControlErrorText>
+                          {errors.name}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Position
+                    </Text>
+
+                    <Select
+                      onValueChange={e => handleChangeInput('des_id', e)}
+                      key={refreshing}
+                    >
+                      <SelectTrigger
+                        variant='outline'
+                        size='md'
+                        rounded={'$xl'}
+                      >
+                        <SelectInput
+                          placeholder='Select Position'
+                          fontFamily='MonaSans_400Regular'
+                        />
+                        <SelectIcon mr='$3' as={ChevronDownIcon} />
+                      </SelectTrigger>
+                      <SelectPortal>
+                        <SelectBackdrop />
+                        <SelectContent>
+                          <SelectDragIndicatorWrapper>
+                            <SelectDragIndicator />
+                          </SelectDragIndicatorWrapper>
+                          {DesginationDropDown &&
+                            DesginationDropDown.map((data, index) => (
+                              <SelectItem
+                                label={data.DesginationName}
+                                value={data.Des_id}
+                              />
+                            ))}
+                        </SelectContent>
+                      </SelectPortal>
+                    </Select>
+
+                    {errors.des_id && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                        <FormControlErrorText>
+                          {errors.des_id}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Company
+                    </Text>
+
+                    <Select
+                      onValueChange={e => handleChangeInput('cm_id', e)}
+                      key={refreshing}
+                    >
+                      <SelectTrigger
+                        variant='outline'
+                        size='md'
+                        rounded={'$xl'}
+                      >
+                        <SelectInput
+                          placeholder='Select Company'
+                          fontFamily='MonaSans_400Regular'
+                        />
+                        <SelectIcon mr='$3' as={ChevronDownIcon} />
+                      </SelectTrigger>
+                      <SelectPortal>
+                        <SelectBackdrop />
+                        <SelectContent>
+                          <SelectDragIndicatorWrapper>
+                            <SelectDragIndicator />
+                          </SelectDragIndicatorWrapper>
+                          {CompanyDropDown &&
+                            CompanyDropDown.map((data, index) => (
+                              <SelectItem
+                                label={data.CompanyName}
+                                value={data.cm_id}
+                              />
+                            ))}
+                        </SelectContent>
+                      </SelectPortal>
+                    </Select>
+
+                    {errors.cm_id && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                        <FormControlErrorText>
+                          {errors.cm_id}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Location
+                    </Text>
+                    <Input rounded={'$xl'}>
+                      <InputField
+                        type='text'
+                        placeholder='Location'
+                        fontFamily='MonaSans_400Regular'
+                        style={{ fontSize: 15 }}
+                        onChangeText={text =>
+                          handleChangeInput('address', text)
+                        }
+                      />
+
+                      <InputSlot>
+                        <InputIcon
+                          style={{ width: 20, height: 20, marginRight: 10 }}
+                        >
+                          <LocationSvg />
+                        </InputIcon>
+                      </InputSlot>
+                    </Input>
+
+                    {errors.address && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                        <FormControlErrorText>
+                          {errors.address}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Birthday Date
+                    </Text>
+                    <Input rounded={'$xl'}>
+                      <InputField
+                        type='text'
+                        placeholder='Birthday Date'
+                        onPressIn={() => setDatePickerOpen(true)}
+                        defaultValue={EmployeerRegisterData.DOB}
+                        value={EmployeerRegisterData.DOB}
+                        onFocus={() => {
+                          Keyboard.dismiss()
+                          setDatePickerOpen(true)
+                        }}
+                      />
+
+                      <InputSlot>
+                        <InputIcon
+                          style={{ width: 20, height: 20, marginRight: 10 }}
+                        >
+                          <DatePickerSvg />
+                        </InputIcon>
+                      </InputSlot>
+                    </Input>
+
+                    {errors.DOB && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                        <FormControlErrorText>
+                          {errors.DOB}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <View>
+                    <Text fontFamily='MonaSans_SemiBold' color='#0A1629'>
+                      Contact Info
+                    </Text>
+                  </View>
+
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Email
+                    </Text>
+                    <Input rounded={'$xl'}>
+                      <InputField
+                        type='text'
+                        onChangeText={text => handleChangeInput('email', text)}
+                        value={EmployeerRegisterData.email}
+                      />
+                    </Input>
+
+                    {errors.email && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                        <FormControlErrorText>
+                          {errors.email}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Mobile
+                    </Text>
+                    <Input rounded={'$xl'}>
+                      <InputField
+                        type='text'
+                        onChangeText={text => handleChangeInput('mobile', text)}
+                        value={EmployeerRegisterData.mobile}
+                        defaultValue={EmployeerRegisterData.mobile}
+                        keyboardType='phone-pad'
+                      />
+                    </Input>
+
+                    {errors.mobile && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                        <FormControlErrorText>
+                          {errors.mobile}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <Button rounded={'$lg'} onPress={handleSave}>
+                    <ButtonText fontFamily='MonaSans_SemiBold'>
+                      Register Employee
+                    </ButtonText>
+                  </Button>
+                </VStack>
+              </FormControl>
+            </ScrollView>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <DatePicker
+        isOpen={DatePickerOpen}
+        onClose={() => setDatePickerOpen(false)}
+        SelectedDate={handleDatepicker}
+      />
+    </>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F9FD',
+    padding: 15
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E6EDF5',
+    borderRadius: 25,
+    padding: 4,
+    marginBottom: 20,
+    overflow: 'hidden',
+    width: '100%',
+    height: 50
+  },
+  activeTabIndicator: {
+    position: 'absolute',
+    height: '100%',
+    width: width / 2,
+    borderRadius: 25,
+    zIndex: 0
+  },
+  tabButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+    zIndex: 1,
+    margin: 1
+  },
+  activeTabButton: {
+    backgroundColor: '#3F8CFF', // Background color for active tab button
+    borderRadius: 25,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 15
+  },
+  tabText: {
+    fontSize: 12
+  },
+  activeTabText: {
+    color: '#ffffff',
+    fontWeight: 'bold'
+  },
+  inactiveTabText: {
+    color: '#6e6e6e'
+  },
+  content: {
+    flex: 1
+  }
+})
+
+export default EmployeeTab
