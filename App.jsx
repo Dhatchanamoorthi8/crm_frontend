@@ -35,7 +35,7 @@ import * as Notifications from 'expo-notifications'
 import Settings from './src/Admin/Settings'
 import EmployeeTab from './src/Admin/Employee.Tab.'
 
-SplashScreen.preventAutoHideAsync()
+SplashScreen.preventAutoHideAsync()   
 
 const Stack = createStackNavigator()
 
