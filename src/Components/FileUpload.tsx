@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   ActionsheetContent,
   ActionsheetDragIndicatorWrapper,
+  Alert,
   ButtonGroup,
   ButtonText,
   HStack,
@@ -13,7 +14,6 @@ import { CloseIcon, DownloadIcon } from '@gluestack-ui/themed'
 
 import { Center } from '@gluestack-ui/themed'
 
-import Alerts from './Alert'
 import { Box } from '@gluestack-ui/themed'
 import { ModalFooter } from '@gluestack-ui/themed'
 import { Heading } from '@gluestack-ui/themed'
@@ -28,11 +28,11 @@ import { StyleSheet } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { Image } from '@gluestack-ui/themed'
 
-import { Camera, CameraType, CameraView, FlashMode, } from 'expo-camera'
+import { Camera, CameraType, CameraView, FlashMode, useCameraPermissions, } from 'expo-camera'
+import { Linking, PermissionsAndroid } from 'react-native'
+import { CloseSvg } from '@/assets/Icons/SvgIcons'
 
 const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
-
-
 
 
   const [imageBase64, setImageBase64] = useState(null)
@@ -44,7 +44,7 @@ const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
     visible: false
   })
 
-  const [hasPermission, setHasPermission] = useState(null)
+  const [hasPermission, setHasPermission] = useState(false)
 
   const [isCameraActive, setIsCameraActive] = useState(false)
 
@@ -54,10 +54,46 @@ const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
 
   const cameraRef = useRef(null)
 
+
+  const requestCameraPermission = async () => {
+
+    console.log("clicked");
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Access Required',
+          message:
+            'To capture photos, this app requires access to your camera. Please grant permission to enable camera functionality.',
+          buttonNeutral: 'Decide Later',
+          buttonNegative: 'Deny',
+          buttonPositive: 'Allow',
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+
+        setHasPermission(true)
+        setIsCameraActive(true)
+        console.log('You can use the camera');
+      } else {
+        console.log('Camera permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+
   useEffect(() => {
+
     const getPermission = async () => {
-      const { status } = await Camera.getCameraPermissionsAsync()
-      setHasPermission(status === 'granted')
+      const { granted } = await Camera.getCameraPermissionsAsync()
+      if (granted === false) {
+        return
+      }
+      setHasPermission(true)
+      setIsCameraActive(true)
+
     }
 
     getPermission()
@@ -129,6 +165,7 @@ const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
   const resetImage = () => {
     setImageBase64(null)
     ClearImage()
+    setIsCameraActive(true)
   }
 
   const uploadimg = () => {
@@ -151,103 +188,107 @@ const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
             <ActionsheetDragIndicator />
           </ActionsheetDragIndicatorWrapper>
 
-          < View display={imageBase64 === null ? 'flex' : 'none'
-          }>
-            <View
-              style={
-                {
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  display: 'flex'
-                }
-              }
-            >
-              <Heading size='md' color='typography.950' >
-                Take Photo
-              </Heading>
 
-              <Pressable onPress={() => onClose()}>
-                <Icon
-                  as={CloseIcon}
-                  size='md'
-                />
-              </Pressable>
-            </View>
-            < View style={styles.container} >
-              <CameraView
-                style={styles.camera}
-                ref={cameraRef}
-                facing={cameraType}
-                flash={flashMode}
-                mute={true}
-              >
-                <View style={styles.overlay}>
-                  {/* Bottom Control Buttons */}
-                  < HStack style={styles.bottomButtons} >
-                    {/* Select Image Button */}
-                    {/* < Pressable style={styles.iconButton} onPress={pickImage} >
-                      <MaterialIcons
-                        name='photo-library'
-                        color={'white'}
-                        style={{ fontSize: 30 }}
-                      />
-                    </Pressable> */}
 
-                    {/* Flash on off*/}
-                    <Pressable
-                      style={styles.iconButton}
-                      onPress={toggleFlashMode}
-                    >
-                      <MaterialIcons
-                        name={flashMode === 'off' ? 'flash-off' : 'flash-on'}
-                        color={'white'}
-                        style={{ fontSize: 30 }}
-                      />
-                    </Pressable>
+          {hasPermission ? (
+            isCameraActive && imageBase64 === null ? (
 
-                    {/* Take Photo Button */}
-                    <Pressable style={styles.captureButton} onPress={takePhoto} >
-                      <View style={styles.innerCaptureButton} />
-                    </Pressable>
+              < View >
+                <View
+                  style={
+                    {
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      display: 'flex'
+                    }
+                  }
+                  mx="$2"
+                >
+                  <Heading size='md' color='typography.950' >
+                    Take Photo
+                  </Heading>
 
-                    {/* Flip Camera Button */}
-                    <Pressable
-                      style={styles.iconButton}
-                      onPress={toggleCameraType}
-                    >
-                      <MaterialIcons
-                        name='flip-camera-android'
-                        color={'white'}
-                        style={{ fontSize: 30 }}
-                      />
-                    </Pressable>
-                  </HStack>
+                  <Pressable onPress={() => onClose()}>
+                    <CloseSvg />
+                  </Pressable>
                 </View>
-              </CameraView>
-            </View>
-          </View>
+                < View style={styles.container} >
+                  <CameraView
+                    style={styles.camera}
+                    ref={cameraRef}
+                    facing={cameraType}
+                    flash={flashMode}
+                    mute={true}
+                  >
+                    <View style={styles.overlay}>
+                      {/* Bottom Control Buttons */}
+                      < HStack style={styles.bottomButtons} >
+                        {/* Select Image Button */}
+                        < Pressable style={styles.iconButton} onPress={pickImage} >
+                          <MaterialIcons
+                            name='photo-library'
+                            color={'white'}
+                            style={{ fontSize: 30 }}
+                          />
+                        </Pressable>
 
-          < View display={imageBase64 !== null ? 'flex' : 'none'} my={'$10'} >
-            <View position='relative' >
-              <View>
-                <Image
-                  size='2xl'
-                  source={{
-                    uri: `data:image/jpeg;base64,${imageBase64}`
-                  }}
-                  alt='uploaded image'
-                  rounded={'$lg'}
-                />
+                        {/* Flash on off*/}
+                        <Pressable
+                          style={styles.iconButton}
+                          onPress={toggleFlashMode}
+                        >
+                          <MaterialIcons
+                            name={flashMode === 'off' ? 'flash-off' : 'flash-on'}
+                            color={'white'}
+                            style={{ fontSize: 30 }}
+                          />
+                        </Pressable>
+
+                        {/* Take Photo Button */}
+                        <Pressable style={styles.captureButton} onPress={takePhoto} >
+                          <View style={styles.innerCaptureButton} />
+                        </Pressable>
+
+                        {/* Flip Camera Button */}
+                        <Pressable
+                          style={styles.iconButton}
+                          onPress={toggleCameraType}
+                        >
+                          <MaterialIcons
+                            name='flip-camera-android'
+                            color={'white'}
+                            style={{ fontSize: 30 }}
+                          />
+                        </Pressable>
+                      </HStack>
+                    </View>
+                  </CameraView>
+                </View>
               </View>
 
-              < View
-                position='absolute'
-                rounded={'$full'}
-                right={'$2'}
-                top={'$2'}
-              >
-                {/* <Pressable onPress={resetImage}>
+            ) : (
+
+              < View display={imageBase64 !== null ? 'flex' : 'none'} my={'$10'} >
+                <View position='relative' >
+                  <View>
+                    <Image
+                      size='2xl'
+                      source={{
+                        uri: `data:image/jpeg;base64,${imageBase64}`
+                      }}
+                      alt='uploaded image'
+                      rounded={'$lg'}
+                    />
+                  </View>
+
+                  < View
+                    position='absolute'
+                    rounded={'$full'}
+                    right={'$2'}
+                    top={'$2'}
+                  >
+                    {/* <Pressable onPress={resetImage}>
                   <Icon
                     as={CloseIcon}
                     size='lg'
@@ -255,20 +296,34 @@ const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
                   />
                 </Pressable> */}
 
-                < Pressable style={styles.restIconbtn} onPress={resetImage} >
-                  <MaterialIcons
-                    name='close'
-                    color={'white'}
-                    style={{ fontSize: 15 }}
-                  />
-                </Pressable>
-              </View>
+                    < Pressable style={styles.restIconbtn} onPress={() => resetImage()} >
+                      <MaterialIcons
+                        name='close'
+                        color={'white'}
+                        style={{ fontSize: 15 }}
+                      />
+                    </Pressable>
+                  </View>
 
-              < Button my={'$5'} onPress={uploadimg} >
-                <ButtonText fontFamily='MonaSans_SemiBold' > Proceed </ButtonText>
+                  < Button my={'$5'} onPress={uploadimg} >
+                    <ButtonText fontFamily='MonaSans_SemiBold' > Proceed </ButtonText>
+                  </Button>
+                </View>
+              </View>
+            )
+          ) : (
+
+            <View>
+              <Button onPress={() => requestCameraPermission()}>
+                <ButtonText>Give Permission</ButtonText>
               </Button>
             </View>
-          </View>
+
+          )}
+
+
+
+
         </ActionsheetContent>
       </Actionsheet>
     </>
@@ -286,7 +341,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     overflow: 'hidden',
     margin: 1,
-    marginTop:20
+    marginTop: 20
   },
   overlay: {
     flex: 1,
@@ -331,6 +386,17 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: 'white'
-  }
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  permissionText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
 })
 export default FileUpload

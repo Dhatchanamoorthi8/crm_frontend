@@ -496,9 +496,9 @@ const Attendance = ({ onScroll }) => {
                   <Text
                     fontFamily='Inter_500Medium'
                     p={'$1'}
-                    color={attendanceTime.intime ? '$black' : '$white'}
+                    color={attendanceTime.intime === '' ? '$black' : '$white'}
                   >
-                    {attendanceTime.intime ? 'Check In' : 'Check Out'}
+                    {attendanceTime.intime === '' ? 'Check In' : 'Check Out'}
                   </Text>
                 </View>
               </TouchableOpacity>

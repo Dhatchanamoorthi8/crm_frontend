@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, lazy, Suspense } from 'react'
+import React, { useRef, lazy, Suspense } from 'react'
 import { ActivityIndicator, Text } from 'react-native'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { useSelector } from 'react-redux'
@@ -29,10 +29,10 @@ const DrawerNavigator = () => {
     return {
       header: () => <CustomHeader title={route.name} scrollY={scrollY} />,
       drawerStyle: {
-        borderTopLeftRadius: 5,
-        borderTopRightRadius: 25,
-        borderBottomLeftRadius: 25,
-        borderBottomRightRadius: 25,
+        // borderTopLeftRadius: 5,
+        borderTopRightRadius: 35,
+        //borderBottomLeftRadius: 25,
+        borderBottomRightRadius: 35,
         shadowColor: '#F4F9FD',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.25,
@@ -40,7 +40,7 @@ const DrawerNavigator = () => {
         backgroundColor: '#FFFF',
         width: '63%'
       },
-      drawerPosition: 'left' // Position the drawer on the left side
+      drawerPosition: 'left'
     }
   }
 
@@ -60,6 +60,60 @@ const DrawerNavigator = () => {
     </View>
   )
 
+  const renderDrawerScreens = role => {
+    switch (role) {
+      case 'admin':
+        return (
+          <>
+            <Drawer.Screen name='EmployeeTab'>
+              {renderScreen(EmployeeTab)}
+            </Drawer.Screen>
+          </>
+        )
+      case 'user':
+        return (
+          <>
+            <Drawer.Screen name='DashBoard'>
+              {renderScreen(TabNavigator)}
+            </Drawer.Screen>
+            <Drawer.Screen name='Attendance'>
+              {renderScreen(Attendance)}
+            </Drawer.Screen>
+          </>
+        )
+      default:
+        return (
+          <Drawer.Screen name='NotAuthorized'>
+            {/* {renderScreen(NotAuthorizedPage)} */}
+          </Drawer.Screen>
+        )
+    }
+  }
+
+  const renderLoginScreen = () => (
+    <Drawer.Screen name='Login'>{renderScreen(LoginPage)}</Drawer.Screen>
+  )
+
+  const renderScreen = Component => () =>
+    (
+      <ErrorBoundaryWrapper>
+        <Suspense
+          fallback={
+            <ActivityIndicator
+              size='large'
+              color='#0000ff'
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: 1
+              }}
+            />
+          }
+        >
+          <Component />
+        </Suspense>
+      </ErrorBoundaryWrapper>
+    )
   return (
     <ErrorBoundary
       FallbackComponent={fallbackErrorScreen}
@@ -69,116 +123,7 @@ const DrawerNavigator = () => {
         screenOptions={screenOptions}
         drawerContent={() => <DrawerContent userrole={userRole} />}
       >
-        {isAuthenticated && userRole === 'admin' ? (
-          <>
-            <Drawer.Screen name='DashBoard'>
-              {() => (
-                <ErrorBoundaryWrapper>
-                  <Suspense
-                    fallback={
-                      <ActivityIndicator
-                        size='large'
-                        color='#0000ff'
-                        style={{
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flex: 1
-                        }}
-                      />
-                    }
-                  >
-                    <TabNavigator />
-                  </Suspense>
-                </ErrorBoundaryWrapper>
-              )}
-            </Drawer.Screen>
-            <Drawer.Screen name='Attendance'>
-              {() => (
-                <ErrorBoundaryWrapper>
-                  <Suspense
-                    fallback={
-                      <ActivityIndicator
-                        size='large'
-                        color='#0000ff'
-                        style={{
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flex: 1
-                        }}
-                      />
-                    }
-                  >
-                    <Attendance />
-                  </Suspense>
-                </ErrorBoundaryWrapper>
-              )}
-            </Drawer.Screen>
-            <Drawer.Screen name='EmployeeTab'>
-              {() => (
-                <ErrorBoundaryWrapper>
-                  <Suspense
-                    fallback={
-                      <ActivityIndicator
-                        size='large'
-                        color='#0000ff'
-                        style={{
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flex: 1
-                        }}
-                      />
-                    }
-                  >
-                    <EmployeeTab />
-                  </Suspense>
-                </ErrorBoundaryWrapper>
-              )}
-            </Drawer.Screen>
-            <Drawer.Screen name='CompanyMaster'>
-              {() => (
-                <ErrorBoundaryWrapper>
-                  <Suspense
-                    fallback={
-                      <ActivityIndicator
-                        size='large'
-                        color='#0000ff'
-                        style={{
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flex: 1
-                        }}
-                      />
-                    }
-                  >
-                    <Attendance />
-                  </Suspense>
-                </ErrorBoundaryWrapper>
-              )}
-            </Drawer.Screen>
-          </>
-        ) : (
-          <Drawer.Screen name='Login'>
-            {() => (
-              <ErrorBoundaryWrapper>
-                <Suspense
-                  fallback={
-                    <ActivityIndicator
-                      size='large'
-                      color='#0000ff'
-                      style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flex: 1
-                      }}
-                    />
-                  }
-                >
-                  <LoginPage />
-                </Suspense>
-              </ErrorBoundaryWrapper>
-            )}
-          </Drawer.Screen>
-        )}
+        {isAuthenticated ? renderDrawerScreens(userRole) : renderLoginScreen()}
       </Drawer.Navigator>
     </ErrorBoundary>
   )

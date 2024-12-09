@@ -106,15 +106,13 @@ const Selects = ({ selectype, onChangeText, refreshData, color, page }) => {
       value={selectedValue}
       onValueChange={handleSelectChange}
       key={refreshData}
-      borderColor={color}
     >
-      <SelectTrigger variant='outline' size='md' borderColor={color}>
+      <SelectTrigger variant='outline' size='md' rounded={'$xl'}>
         <SelectInput
           placeholder='Select option'
-          borderColor={color}
           fontFamily='MonaSans_400Regular'
         />
-        <SelectIcon mr={'$3'} as={ChevronDownIcon} borderColor={color} />
+        <SelectIcon mr={'$3'} as={ChevronDownIcon} />
       </SelectTrigger>
       <SelectPortal>
         <SelectBackdrop />

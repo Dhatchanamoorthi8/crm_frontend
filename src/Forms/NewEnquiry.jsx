@@ -16,7 +16,13 @@ import {
 import { ScrollView, View, FormControl, VStack } from '@gluestack-ui/themed'
 import React, { useCallback, useEffect, useState } from 'react'
 import FileUpload from '../Components/FileUpload'
-import { Alert, Platform, StyleSheet, TouchableOpacity } from 'react-native'
+import {
+  Alert,
+  Keyboard,
+  Platform,
+  StyleSheet,
+  TouchableOpacity
+} from 'react-native'
 import Selects from '../Components/Select'
 import { TextareaInput } from '@gluestack-ui/themed'
 import api from '../Services/axiosConfig'
@@ -47,7 +53,9 @@ const NewEnquiry = () => {
     followup_Date: '',
     client_address: '',
     latitude: '',
-    longitude: ''
+    longitude: '',
+    CallStatus: '',
+    Remarks: ''
   })
 
   const [uploadedOpen, setUploadedOpen] = useState(false)
@@ -60,9 +68,7 @@ const NewEnquiry = () => {
 
   const [refreshData, setRefreshData] = useState(false)
 
-  const [title, setTitle] = useState('followup')
-
-  const [notes, setNotes] = useState('update')
+  console.log(EnquiryData)
 
   // const calendar = CalendarEventCreator({
   //   title,
@@ -114,7 +120,9 @@ const NewEnquiry = () => {
   }
 
   const handleUploadRest = async image => {
-    SetFollowupData(prevData => ({
+    console.log(image)
+
+    SetEnquiryData(prevData => ({
       ...prevData,
       images: ''
     }))
@@ -147,7 +155,9 @@ const NewEnquiry = () => {
     followup_Date: '',
     client_address: '',
     images: '',
-    location: ''
+    location: '',
+    CallStatus: '',
+    Remarks: ''
   })
 
   const [alertProps, setAlertProps] = useState({
@@ -212,6 +222,13 @@ const NewEnquiry = () => {
       isValid = false
     }
 
+    if (EnquiryData.visit_type === 'TeleCall' && newErrors.CallStatus === '') {
+      console.log('Please Select Call Status')
+      newErrors.CallStatus = 'Please Select TeleCall Status'
+
+      isValid = false
+    }
+
     // Check if 'Followup_type' is provided and not empty
     if (EnquiryData.Followup_type === '') {
       console.log('Validation failed: Followup_type is required')
@@ -269,6 +286,12 @@ const NewEnquiry = () => {
       }
     }
 
+    if (EnquiryData.Remarks === '') {
+      console.log('Remarks is required')
+      newErrors.Remarks = 'Remarks is required'
+      isValid = false
+    }
+
     setErrors(newErrors)
     return isValid
   }
@@ -286,7 +309,9 @@ const NewEnquiry = () => {
       followup_Date: '',
       client_address: '',
       images: '',
-      location: ''
+      location: '',
+      CallStatus: '',
+      Remarks: ''
     }))
     SetEnquiryData(preData => ({
       ...preData,
@@ -301,7 +326,9 @@ const NewEnquiry = () => {
       followup_Date: '',
       client_address: '',
       latitude: '',
-      longitude: ''
+      longitude: '',
+      CallStatus: '',
+      Remarks: ''
     }))
 
     setAlertProps(preData => ({
@@ -315,6 +342,8 @@ const NewEnquiry = () => {
 
   const handleSubmit = async () => {
     if (validate()) {
+      console.log(EnquiryData)
+
       console.log('Validation passed, submitting API call')
       try {
         const response = await api.post('/client-vist/newenquiry', EnquiryData)
@@ -332,7 +361,6 @@ const NewEnquiry = () => {
           'API Error:',
           error.response?.data?.error || error.message
         )
-
         setAlertProps({
           alertType: 'Error',
           content:
@@ -366,7 +394,7 @@ const NewEnquiry = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      // behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
         showsVerticalScrollIndicator={true}
@@ -384,7 +412,7 @@ const NewEnquiry = () => {
           bg='#F4F9FD'
         >
           <FormControl
-            p={'$1'}
+            //p={'$1'}
             rounded={'$sm'}
             $web-w={'$full'}
             $web-marginStart={'auto'}
@@ -413,7 +441,7 @@ const NewEnquiry = () => {
 
                 {errors.company_name && (
                   <HStack flexDirection='row' gap={'$1'}>
-                    <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                    <FormControlErrorIcon as={AlertCircleIcon} />
                     <FormControlErrorText>
                       {errors.company_name}
                     </FormControlErrorText>
@@ -505,8 +533,7 @@ const NewEnquiry = () => {
             >
               <View style={{ width: '50%' }}>
                 <Text mb={'$1'} fontFamily='MonaSans_400Regular'>
-                  Service Need
-                  <Text color='$red700'>*</Text>
+                  Service Need <Text color='$red700'>*</Text>
                 </Text>
                 <Selects
                   selectype={'Services'}
@@ -526,8 +553,7 @@ const NewEnquiry = () => {
               </View>
               <View style={{ width: '50%' }}>
                 <Text mb={'$1'} fontFamily='MonaSans_400Regular'>
-                  Visit Type
-                  <Text color='$red700'>*</Text>
+                  Mode <Text color='$red700'>*</Text>
                 </Text>
                 <Selects
                   selectype={'Visittype'}
@@ -553,6 +579,42 @@ const NewEnquiry = () => {
               justifyContent='space-evenly'
               gap={'$2'}
               style={{ width: '100%', padding: '0%' }}
+              display={EnquiryData.visit_type === 'TeleCall' ? 'flex' : 'none'}
+            >
+              <View style={{ width: '100%' }}>
+                <Text fontFamily='MonaSans_400Regular'>
+                  Call Status <Text color='$red700'>*</Text>
+                </Text>
+                <Selects
+                  selectype={'CallStatus'}
+                  refreshData={refreshData}
+                  onChangeText={value => handleChangeInput('CallStatus', value)}
+                />
+
+                {errors.CallStatus && (
+                  <HStack flexDirection='row' gap={'$1'}>
+                    <FormControlErrorIcon
+                      as={AlertCircleIcon}
+                      mt={'$1'}
+                      size='xs'
+                    />
+                    <FormControlErrorText
+                      fontSize={'$sm'}
+                      fontFamily='MonaSans_400Regular'
+                    >
+                      {errors.CallStatus}
+                    </FormControlErrorText>
+                  </HStack>
+                )}
+              </View>
+            </HStack>
+
+            <HStack
+              my={'$2'}
+              flexDirection='row'
+              justifyContent='space-evenly'
+              gap={'$2'}
+              style={{ width: '100%', padding: '0%' }}
             >
               <View
                 style={{
@@ -561,8 +623,7 @@ const NewEnquiry = () => {
                 }}
               >
                 <Text mb={'$1'} fontFamily='MonaSans_400Regular'>
-                  Followup Type
-                  <Text color='$red700'>*</Text>
+                  Followup Type <Text color='$red700'>*</Text>
                 </Text>
 
                 <Selects
@@ -593,15 +654,17 @@ const NewEnquiry = () => {
                       onClose={() => setDatePickerOpen(false)}
                       SelectedDate={handleDatepicker}
                     />
-                    <Text mt={'$1'}>FollowUp Date</Text>
+                    <Text mt={'$1'}>
+                      FollowUp Date <Text color='$red700'>*</Text>
+                    </Text>
                     <Input>
                       <InputField
                         type='text'
                         value={EnquiryData.followup_Date}
-                        // onChangeText={text =>
-                        //   handleChangeInput('followup_Date', text)
-                        // }
-
+                        onFocus={() => {
+                          Keyboard.dismiss()
+                          setDatePickerOpen(true)
+                        }}
                         onPressIn={() => setDatePickerOpen(true)}
                       />
                     </Input>
@@ -642,6 +705,29 @@ const NewEnquiry = () => {
                   <FormControlErrorText>
                     {errors.client_address}
                   </FormControlErrorText>
+                </HStack>
+              )}
+            </VStack>
+
+            <VStack space='xs' my={'$2'}>
+              <Textarea
+                size='md'
+                isReadOnly={false}
+                isInvalid={false}
+                isDisabled={false}
+              >
+                <TextareaInput
+                  placeholder='Enter Remarks...'
+                  fontFamily='MonaSans_400Regular'
+                  value={EnquiryData.Remarks}
+                  onChangeText={text => handleChangeInput('Remarks', text)}
+                />
+              </Textarea>
+
+              {errors.Remarks && (
+                <HStack flexDirection='row' gap={'$1'}>
+                  <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                  <FormControlErrorText>{errors.Remarks}</FormControlErrorText>
                 </HStack>
               )}
             </VStack>
@@ -700,7 +786,7 @@ const NewEnquiry = () => {
             </VStack>
 
             {/* Button to collect and submit data */}
-            <VStack space='xs' mt={'$2'}>
+            <VStack space='xs' mt='$2' mb={'$16'}>
               <TouchableOpacity>
                 <Button onPress={() => handleSubmit()} rounded={'$2xl'}>
                   <ButtonText fontFamily='MonaSans_Bold'>

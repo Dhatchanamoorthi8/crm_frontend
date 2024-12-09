@@ -63,6 +63,9 @@ import { FormControlErrorIcon } from '@gluestack-ui/themed'
 import { FormControlErrorText } from '@gluestack-ui/themed'
 import { HStack } from '@gluestack-ui/themed'
 import { RefreshControl } from '@gluestack-ui/themed'
+import Alerts from '../Components/Alert'
+import { Center } from '@gluestack-ui/themed'
+import { base64men, base64women } from '@/assets/Icons/AvatarSvg'
 
 const { width } = Dimensions.get('window')
 
@@ -88,11 +91,14 @@ const EmployeeTab = () => {
   const [EmployeerRegisterData, SetEmployeerRegisterData] = useState({
     name: '',
     email: '',
+    gender: '',
     DOB: '',
     mobile: '',
     address: '',
     des_id: '',
-    cm_id: ''
+    cm_id: '',
+    desginationname: '',
+    comapnyname: ''
   })
 
   console.log(EmployeerRegisterData)
@@ -142,6 +148,7 @@ const EmployeeTab = () => {
     name: '',
     email: '',
     DOB: '',
+    gender: '',
     mobile: '',
     address: '',
     des_id: '',
@@ -156,6 +163,11 @@ const EmployeeTab = () => {
 
     if (EmployeerRegisterData.name === '') {
       newErrors.name = 'Name is required'
+      isValid = false
+    }
+
+    if (EmployeerRegisterData.gender === '') {
+      newErrors.gender = 'Gender is required'
       isValid = false
     }
 
@@ -204,15 +216,40 @@ const EmployeeTab = () => {
     return isValid
   }
 
+  const [alertProps, setAlertProps] = useState({
+    alertType: '',
+    content: '',
+    renderType: '',
+    visible: false
+  })
+
   const handleSave = async () => {
     if (validate()) {
       try {
-        const response = await api.post('users', EmployeerRegisterData)
-        if (response.status === 200) {
-          console.log(response.data)
+        const payload = {
+          ...EmployeerRegisterData,
+          profile:
+            EmployeerRegisterData.gender === 'male' ? base64men : base64women
+        }
+        const response = await api.post('users', payload)
+        if (response.status === 201) {
+          setShowModal(false)
+          setAlertProps({
+            alertType: 'Success',
+            content: `${EmployeerRegisterData.name} Register SuccessFully`,
+            renderType: 'toast',
+            visible: true
+          })
         }
       } catch (error) {
-        console.log(error)
+        console.log(error.response.data.message)
+        setShowModal(false)
+        setAlertProps({
+          alertType: 'Error',
+          content: error.response.data.message,
+          renderType: 'toast',
+          visible: true
+        })
       }
     } else {
       console.log('failed validation')
@@ -225,6 +262,7 @@ const EmployeeTab = () => {
       name: '',
       email: '',
       DOB: '',
+      gender: '',
       mobile: '',
       address: '',
       des_id: '',
@@ -236,6 +274,7 @@ const EmployeeTab = () => {
       name: '',
       email: '',
       DOB: '',
+      gender: '',
       mobile: '',
       address: '',
       des_id: '',
@@ -390,8 +429,7 @@ const EmployeeTab = () => {
                         fontFamily='MonaSans_400Regular'
                         style={{ fontSize: 15 }}
                         onChangeText={text => handleChangeInput('name', text)}
-                        value={EmployeerRegisterData.name}
-                        defaultValue={EmployeerRegisterData.name}
+                        // value={EmployeerRegisterData.name}
                       />
                     </Input>
 
@@ -411,12 +449,60 @@ const EmployeeTab = () => {
                       color='#7D8592'
                       style={{ fontSize: 14 }}
                     >
+                      Gender
+                    </Text>
+
+                    <Select
+                      onValueChange={e => handleChangeInput('gender', e)}
+                      key={refreshing}
+                      value={EmployeerRegisterData.gender}
+                    >
+                      <SelectTrigger
+                        variant='outline'
+                        size='md'
+                        rounded={'$xl'}
+                      >
+                        <SelectInput
+                          placeholder='Select Position'
+                          fontFamily='MonaSans_400Regular'
+                        />
+                        <SelectIcon mr='$3' as={ChevronDownIcon} />
+                      </SelectTrigger>
+                      <SelectPortal>
+                        <SelectBackdrop />
+                        <SelectContent>
+                          <SelectDragIndicatorWrapper>
+                            <SelectDragIndicator />
+                          </SelectDragIndicatorWrapper>
+                          <SelectItem label={'Male'} value={'male'} />
+                          <SelectItem label={'Female'} value={'female'} />
+                        </SelectContent>
+                      </SelectPortal>
+                    </Select>
+
+                    {errors.gender && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon as={AlertCircleIcon} mt={'$1'} />
+                        <FormControlErrorText>
+                          {errors.gender}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  <VStack space='xs'>
+                    <Text
+                      fontFamily='MonaSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
                       Position
                     </Text>
 
                     <Select
                       onValueChange={e => handleChangeInput('des_id', e)}
                       key={refreshing}
+                      value={EmployeerRegisterData.des_id}
                     >
                       <SelectTrigger
                         variant='outline'
@@ -468,6 +554,7 @@ const EmployeeTab = () => {
                     <Select
                       onValueChange={e => handleChangeInput('cm_id', e)}
                       key={refreshing}
+                      value={EmployeerRegisterData.cm_id}
                     >
                       <SelectTrigger
                         variant='outline'
@@ -477,6 +564,7 @@ const EmployeeTab = () => {
                         <SelectInput
                           placeholder='Select Company'
                           fontFamily='MonaSans_400Regular'
+                          //value={EmployeerRegisterData.cm_id}
                         />
                         <SelectIcon mr='$3' as={ChevronDownIcon} />
                       </SelectTrigger>
@@ -524,6 +612,7 @@ const EmployeeTab = () => {
                         onChangeText={text =>
                           handleChangeInput('address', text)
                         }
+                        //value={EmployeerRegisterData.address}
                       />
 
                       <InputSlot>
@@ -558,7 +647,6 @@ const EmployeeTab = () => {
                         type='text'
                         placeholder='Birthday Date'
                         onPressIn={() => setDatePickerOpen(true)}
-                        defaultValue={EmployeerRegisterData.DOB}
                         value={EmployeerRegisterData.DOB}
                         onFocus={() => {
                           Keyboard.dismiss()
@@ -603,7 +691,7 @@ const EmployeeTab = () => {
                       <InputField
                         type='text'
                         onChangeText={text => handleChangeInput('email', text)}
-                        value={EmployeerRegisterData.email}
+                        //value={EmployeerRegisterData.email}
                       />
                     </Input>
 
@@ -629,9 +717,8 @@ const EmployeeTab = () => {
                       <InputField
                         type='text'
                         onChangeText={text => handleChangeInput('mobile', text)}
-                        value={EmployeerRegisterData.mobile}
-                        defaultValue={EmployeerRegisterData.mobile}
                         keyboardType='phone-pad'
+                        //value={EmployeerRegisterData.mobile}
                       />
                     </Input>
 
@@ -662,6 +749,22 @@ const EmployeeTab = () => {
         onClose={() => setDatePickerOpen(false)}
         SelectedDate={handleDatepicker}
       />
+
+      <View>
+        <Center>
+          {alertProps.visible && (
+            <Alerts
+              alertType={alertProps.alertType}
+              content={alertProps.content}
+              renderType={alertProps.renderType}
+              visible={alertProps.visible}
+              onClose={isVisible =>
+                setAlertProps(prev => ({ ...prev, visible: isVisible }))
+              }
+            />
+          )}
+        </Center>
+      </View>
     </>
   )
 }

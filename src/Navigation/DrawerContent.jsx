@@ -27,18 +27,25 @@ import { AlertDialogBackdrop } from '@gluestack-ui/themed'
 import { AlertDialogFooter } from '@gluestack-ui/themed'
 import { useState } from 'react'
 import { MaterialIcons } from '@expo/vector-icons'
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue
+} from 'react-native-reanimated'
+
 const DrawerList = [
   {
     icon: DashBorad,
     label: 'DashBoard',
     navigateTo: 'DashBoard',
-    role: 'admin'
+    role: 'user'
   },
   {
     icon: Calendar,
     label: 'Attendance',
     navigateTo: 'Attendance',
-    role: 'admin'
+    role: 'user'
   },
   // {
   //   icon: Employee,
@@ -143,7 +150,10 @@ const ChildDrawerLayout = ({ icon, label, navigateTo }) => {
   )
 }
 
-const DrawerContent = ({ userrole, userdata }) => {
+const DrawerContent = ({ userrole, userdata, }) => {
+
+  
+
   const filteredDrawerList = DrawerList.filter(item => item.role === userrole)
 
   const { showAlertDialog, setShowAlertDialog, handleLogout } = useBackHandler()
@@ -154,80 +164,84 @@ const DrawerContent = ({ userrole, userdata }) => {
     setExpandedMenu(prev => (prev === label ? null : label))
   }
 
+
+
   return (
     <>
-      <View style={{ flex: 1 }}>
-        <DrawerContentScrollView>
-          <View p={'$1'} marginTop={'$10'}>
-            {filteredDrawerList.map((item, index) => (
-              <View key={index}>
-                <DrawerLayout
-                  icon={item.icon}
-                  label={item.label}
-                  navigateTo={item.navigateTo}
-                  hasChildren={!!item.children}
-                  onToggle={toggleSubmenu}
-                  isExpanded={expandedMenu === item.label}
-                />
+  
+        <View style={{ flex: 1 }}>
+          <DrawerContentScrollView>
+            <View p={'$1'} marginTop={'$10'}>
+              {filteredDrawerList.map((item, index) => (
+                <View key={index}>
+                  <DrawerLayout
+                    icon={item.icon}
+                    label={item.label}
+                    navigateTo={item.navigateTo}
+                    hasChildren={!!item.children}
+                    onToggle={toggleSubmenu}
+                    isExpanded={expandedMenu === item.label}
+                  />
 
-                {item.children && expandedMenu === item.label && (
-                  <View style={{ paddingLeft: 20 }}>
-                    {item.children.map((child, idx) => (
-                      <ChildDrawerLayout
-                        key={idx}
-                        label={child.label}
-                        navigateTo={child.navigateTo}
-                      />
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
+                  {item.children && expandedMenu === item.label && (
+                    <View style={{ paddingLeft: 20 }}>
+                      {item.children.map((child, idx) => (
+                        <ChildDrawerLayout
+                          key={idx}
+                          label={child.label}
+                          navigateTo={child.navigateTo}
+                        />
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          </DrawerContentScrollView>
+
+          <View style={styles.container}>
+            <TouchableOpacity
+              onPress={() => setShowAlertDialog(true)}
+              style={styles.row}
+            >
+              <Logout />
+              <Text style={styles.text}>Logout</Text>
+            </TouchableOpacity>
           </View>
-        </DrawerContentScrollView>
 
-        <View style={styles.container}>
-          <TouchableOpacity
-            onPress={() => setShowAlertDialog(true)}
-            style={styles.row}
-          >
-            <Logout />
-            <Text style={styles.text}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* <View style={styles.logoContainer}>
+          {/* <View style={styles.logoContainer}>
          <Image source={image} style={styles.logo} resizeMode='contain' /> 
         </View> */}
-      </View>
+        </View>
 
-      <AlertDialog
-        isOpen={showAlertDialog}
-        onClose={() => setShowAlertDialog(false)}
-      >
-        <AlertDialogBackdrop />
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <Heading size='lg'>Logout Account</Heading>
-          </AlertDialogHeader>
-          <AlertDialogBody>
-            <Text>Do you want to logout?</Text>
-          </AlertDialogBody>
-          <AlertDialogFooter>
-            <ButtonGroup space='lg'>
-              <Button
-                variant='outline'
-                onPress={() => setShowAlertDialog(false)}
-              >
-                <ButtonText>Cancel</ButtonText>
-              </Button>
-              <Button bg='$error600' onPress={() => handleLogout()}>
-                <ButtonText>Logout</ButtonText>
-              </Button>
-            </ButtonGroup>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <AlertDialog
+          isOpen={showAlertDialog}
+          onClose={() => setShowAlertDialog(false)}
+        >
+          <AlertDialogBackdrop />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <Heading size='lg'>Logout Account</Heading>
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              <Text>Do you want to logout?</Text>
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <ButtonGroup space='lg'>
+                <Button
+                  variant='outline'
+                  onPress={() => setShowAlertDialog(false)}
+                >
+                  <ButtonText>Cancel</ButtonText>
+                </Button>
+                <Button bg='$error600' onPress={() => handleLogout()}>
+                  <ButtonText>Logout</ButtonText>
+                </Button>
+              </ButtonGroup>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+ 
     </>
   )
 }

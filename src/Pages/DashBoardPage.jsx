@@ -145,8 +145,6 @@ const DashBoardPage = () => {
     return new Intl.DateTimeFormat('en-US', options).format(new Date())
   }
 
-
-
   return (
     <>
       <ScrollView
@@ -155,7 +153,7 @@ const DashBoardPage = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         contentContainerStyle={styles.scrollContent}
-        style={{ backgroundColor: '#F4F9FD' }}
+        className='bg-lightBackground dark:bg-black'
       >
         <View mx={'$3'} my={'$3'}>
           <Text

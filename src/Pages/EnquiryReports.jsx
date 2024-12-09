@@ -23,6 +23,7 @@ import api from '../Services/axiosConfig'
 import { HStack } from '@gluestack-ui/themed'
 import store from '../../Store/store'
 import { Input } from '@gluestack-ui/themed'
+import { ColorCodes } from '../Components/ColorCodes'
 
 const EnquiryReports = ({ route }) => {
   const state = store.getState()
@@ -93,8 +94,8 @@ const EnquiryReports = ({ route }) => {
               <View>
                 <VStack space='2xl'>
                   <HStack space='md'>
-                    <Avatar bg='$backgroundDarkInfo'>
-                      <AvatarFallbackText className='text-white'>
+                    <Avatar bg={ColorCodes(item.company_name)}>
+                      <AvatarFallbackText >
                         {item.company_name.charAt(0)}
                       </AvatarFallbackText>
                       <AvatarBadge />

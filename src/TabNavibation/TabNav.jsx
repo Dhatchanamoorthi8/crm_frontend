@@ -27,7 +27,7 @@ const TabNavigator = () => {
   useEffect(() => {
     const showKeyboard = Keyboard.addListener('keyboardDidShow', () => {
       Animated.timing(tabBarTranslateY, {
-        toValue: 100,
+        toValue: 150,
         duration: 300,
         useNativeDriver: true
       }).start()

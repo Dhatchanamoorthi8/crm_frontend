@@ -90,6 +90,13 @@ const AddCompany = () => {
 
   const handleSave = async () => {
     if (NewCompanyName.CompanyName === '') {
+      SetModelState(c => ({ ...c, isOpen: false, type: '' }))
+      setAlertProps({
+        alertType: 'Error',
+        content: `Please Enter Valid Company Name`,
+        renderType: 'toast',
+        visible: true
+      })
       return
     }
     try {

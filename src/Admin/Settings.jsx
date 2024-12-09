@@ -5,6 +5,7 @@ import { TouchableOpacity, Animated } from 'react-native'
 import AddCompany from './Settings/AddCompany'
 import AddPosition from './Settings/AddPosition'
 import { Dimensions } from 'react-native'
+import AddServices from './Settings/AddServices'
 
 const { width } = Dimensions.get('window')
 
@@ -13,7 +14,7 @@ const Settings = () => {
 
   const translateX = new Animated.Value(0)
 
-  const Settingtabs = ['Position', 'Company']
+  const Settingtabs = ['Position', 'Company', 'Services']
 
   const handleTabSwitch = (index, type) => {
     if (type === 'settings') {
@@ -27,6 +28,7 @@ const Settings = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
+
         <View style={styles.tabContainer}>
           <Animated.View
             style={[styles.activeTabIndicator, { transform: [{ translateX }] }]}
@@ -54,16 +56,19 @@ const Settings = () => {
         </View>
 
         <View style={styles.content}>
-          {SettingsactiveTab === 0 ? (
-            <View>
-              <AddPosition />
-            </View>
-          ) : (
-            <View>
-              <AddCompany />
-            </View>
-          )}
+          <View display={SettingsactiveTab === 0 ? 'flex' : 'none'}>
+            <AddPosition />
+          </View>
+
+          <View display={SettingsactiveTab === 1 ? 'flex' : 'none'}>
+            <AddCompany />
+          </View>
+
+          <View display={SettingsactiveTab === 2 ? 'flex' : 'none'}>
+            <AddServices />
+          </View>
         </View>
+        
       </View>
     </ScrollView>
   )

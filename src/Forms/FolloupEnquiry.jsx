@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { KeyboardAvoidingView } from 'react-native'
+import { Keyboard, KeyboardAvoidingView } from 'react-native'
 import {
   AlertCircleIcon,
   Avatar,
@@ -10,6 +10,7 @@ import {
   Card,
   FormControl,
   HStack,
+  Input,
   Pressable,
   ScrollView,
   View,
@@ -38,6 +39,7 @@ import { StyleSheet } from 'react-native'
 import { ColorCodes } from '../Components/ColorCodes'
 import { Divider } from '@gluestack-ui/themed'
 import { Heading } from '@gluestack-ui/themed'
+import { InputField } from '@gluestack-ui/themed'
 
 const FollowupEnquiry = ({ route, navigation }) => {
   const { Props } = route.params
@@ -260,7 +262,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
           setAlertProps({
             alertType: 'Success',
             content: 'Your Followup has been submitted successfully!',
-            renderType: 'dialog',
+            renderType: 'toast',
             visible: true
           })
           setRefreshData(prevState => !prevState)
@@ -292,7 +294,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
     >
       <View style={styles.cardWrapper}>
         <Card
-          style={{ backgroundColor: '#F4F9FD', borderRadius: 20 }}
+          style={{ backgroundColor: '#FFFFFF', borderRadius: 20 }}
           mx={'$1'}
         >
           <View>
@@ -324,8 +326,6 @@ const FollowupEnquiry = ({ route, navigation }) => {
               justifyContent='space-between'
               my={'$5'}
             >
-           
-
               <View>
                 <Text
                   style={{ color: '#91929E', fontSize: 14 }}
@@ -362,11 +362,9 @@ const FollowupEnquiry = ({ route, navigation }) => {
         </Card>
       </View>
 
-     
-
       <Card
         style={{
-          backgroundColor: '#F4F9FD'
+          backgroundColor: '#FFFFFF'
         }}
         variant='elevated'
         rounded={'$2xl'}
@@ -381,9 +379,13 @@ const FollowupEnquiry = ({ route, navigation }) => {
           style={{ width: '100%', padding: '0%' }}
         >
           <View style={{ width: '100%' }}>
-            <Text mb={'$1'} fontFamily='MonaSans_Bold' style={{ fontSize: 17 }}>
-              Visit Type
-              <Text color='$red700'>*</Text>
+            <Text
+              mb={'$1'}
+              fontFamily='MonaSans_Bold'
+              color='#7D8592'
+              style={{ fontSize: 14 }}
+            >
+              Visit Type <Text color='$red700'>*</Text>
             </Text>
             <Selects
               selectype={'Visittype'}
@@ -414,7 +416,8 @@ const FollowupEnquiry = ({ route, navigation }) => {
                   <Text
                     mb={'$1'}
                     fontFamily='MonaSans_Bold'
-                    style={{ fontSize: 17 }}
+                    color='#7D8592'
+                    style={{ fontSize: 14 }}
                     my={'$4'}
                   >
                     Call Status
@@ -527,7 +530,8 @@ const FollowupEnquiry = ({ route, navigation }) => {
                   <Text
                     mb={'$1'}
                     fontFamily='MonaSans_Bold'
-                    style={{ fontSize: 17 }}
+                    color='#7D8592'
+                    style={{ fontSize: 14 }}
                   >
                     FollowUp Type
                     <Text color='$red700'>*</Text>
@@ -557,19 +561,35 @@ const FollowupEnquiry = ({ route, navigation }) => {
                   )}
                 </View>
 
-                <View style={{ width: '50%' }}>
+                <View style={{ width: '48%' }} mt={'$1'}>
                   <Text
                     mb={'$1'}
                     fontFamily='MonaSans_Bold'
-                    style={{ fontSize: 17 }}
+                    color='#7D8592'
+                    style={{ fontSize: 14 }}
                   >
-                    Services Convert
+                    Follow Up date
                   </Text>
-                  <Selects
+
+                  <Input rounded={'$xl'}>
+                    <InputField
+                      type='text'
+                      value={FollowupData.followup_Date}
+                      fontFamily='MonaSans_400Regular'
+                      style={{ fontSize: 15 }}
+                      onPressIn={() => setDatePickerOpen(true)}
+                      onFocus={() => {
+                        Keyboard.dismiss()
+                        setDatePickerOpen(true)
+                      }}
+                    />
+                  </Input>
+
+                  {/* <Selects
                     selectype={'Services'}
                     refreshData={refreshData}
                     onChangeText={value => handleChangeInput('Services', value)}
-                  />
+                  /> */}
                 </View>
               </VStack>
             </View>

@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useRef } from 'react'
+import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { config } from '@gluestack-ui/config'
 import {
   ChevronLeftIcon,
@@ -34,7 +34,12 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import * as Notifications from 'expo-notifications'
 import Settings from './src/Admin/Settings'
 import EmployeeTab from './src/Admin/Employee.Tab.'
+import './global.css'
 
+import SplashScreenComponent from './src/Hooks/useSplashScreen'
+import ProfileScreen from './src/Pages/ProfileScreen'
+import CommonSettings from './src/Pages/Settings/CommonSettings'
+import AboutScreen from './src/Pages/Settings/AboutScreen'
 SplashScreen.preventAutoHideAsync()
 
 const Stack = createStackNavigator()
@@ -42,9 +47,7 @@ const Stack = createStackNavigator()
 export default function App () {
   const navigationRef = useNavigationContainerRef()
 
-
-  console.log("hiii");
-  
+  const [showSplash, setShowSplash] = useState(true)
 
   useReduxDevToolsExtension(navigationRef)
 
@@ -93,9 +96,16 @@ export default function App () {
       <Provider store={store}>
         <GluestackUIProvider config={config}>
           <NavigationContainer ref={navigationRef} independent={true}>
-            <StatusBar backgroundColor='#F4F9FD' barStyle='dark-content' />
+            <StatusBar
+              backgroundColor={showSplash ? '#000' : '#F4F9FD'}
+              barStyle={showSplash ? 'light-content' : 'dark-content'}
+            />
             <AlertNotificationRoot>
-              <MainNavigator />
+              {showSplash ? (
+                <SplashScreenComponent onFinish={() => setShowSplash(false)} />
+              ) : (
+                <MainNavigator />
+              )}
             </AlertNotificationRoot>
           </NavigationContainer>
         </GluestackUIProvider>
@@ -173,9 +183,6 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
-
-    
-
               <Stack.Screen
                 name='Followup'
                 options={{
@@ -214,7 +221,6 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
-
               <Stack.Screen
                 name='adminSettings'
                 options={{
@@ -253,7 +259,6 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
-
               <Stack.Screen
                 name='EnquiryReports'
                 options={({ route }) => ({
@@ -262,7 +267,24 @@ function MainNavigator () {
                   transitionSpec: {
                     open: config,
                     close: config
-                  }
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
                 })}
               >
                 {({ route, navigation }) => (
@@ -272,6 +294,120 @@ function MainNavigator () {
                     }
                   >
                     <EnquiryReports route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>
+              <Stack.Screen
+                name='CommonSettings'
+                options={{
+                  headerShown: true,
+                  title: 'Settings',
+                  transitionSpec: {
+                    open: config,
+                    close: config
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
+                }}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <CommonSettings route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>
+              <Stack.Screen
+                name='Profilescreen'
+                options={{
+                  headerShown: true,
+                  title: 'Profile',
+                  transitionSpec: {
+                    open: config,
+                    close: config
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
+                }}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <ProfileScreen route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>
+              <Stack.Screen
+                name='Aboutscreen'
+                options={{
+                  headerShown: true,
+                  title: 'About',
+                  transitionSpec: {
+                    open: config,
+                    close: config
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
+                }}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <AboutScreen route={route} navigation={navigation} />
                   </Suspense>
                 )}
               </Stack.Screen>

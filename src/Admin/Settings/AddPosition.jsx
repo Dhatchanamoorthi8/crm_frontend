@@ -90,7 +90,15 @@ const AddPosition = () => {
   }
 
   const handleSave = async () => {
-    if (NewDesginationName.name === '') {
+    if (NewDesginationName.DesginationName === '') {
+      SetModelState(c => ({ ...c, isOpen: false, type: '' }))
+      setAlertProps({
+        alertType: 'Error',
+        content: `Please Enter Valid Desgination Name`,
+        renderType: 'toast',
+        visible: true
+      })
+
       return
     }
 

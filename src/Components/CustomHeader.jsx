@@ -6,16 +6,30 @@ import {
   Icon,
   MenuIcon,
   View,
-  Text
+  Text,
+  VStack,
+  BadgeText,
+  Modal,
+  ModalHeader,
+  Heading,
+  ModalCloseButton,
+  CloseIcon,
+  Divider
 } from '@gluestack-ui/themed'
 import { useNavigation } from '@react-navigation/native'
-import React from 'react'
+import React, { useState } from 'react'
 import { Animated, StyleSheet, TouchableOpacity } from 'react-native'
-import { Notification } from '@/assets/Icons/SvgIcons'
+import { CloseSvg, Notification } from '@/assets/Icons/SvgIcons'
+import { Badge } from '@gluestack-ui/themed'
+import { Box } from '@gluestack-ui/themed'
+import { ModalBackdrop } from '@gluestack-ui/themed'
+import { ModalContent } from '@gluestack-ui/themed'
+import { ModalBody } from '@gluestack-ui/themed'
+import NotificationScreen from '../Pages/Notification/NotificationScreen'
 const CustomHeader = ({ title, scrollY }) => {
   const navigation = useNavigation()
 
-  console.log(title, scrollY)
+  const [NotificationModel, setNotificationModel] = useState(false)
 
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 200],
@@ -41,7 +55,7 @@ const CustomHeader = ({ title, scrollY }) => {
   }
 
   return (
-    <View style={{ backgroundColor: '#F4F9FD' }}>
+    <View className='bg-lightBackground dark:bg-black'>
       <Animated.View style={[styles.headerContainer, { height: headerHeight }]}>
         <View style={styles.headerContent}>
           <TouchableOpacity
@@ -62,24 +76,77 @@ const CustomHeader = ({ title, scrollY }) => {
           </TouchableOpacity>
 
           <View style={styles.rightContainer}>
-            <TouchableOpacity>
-              <Notification />
+            <TouchableOpacity onPress={() => setNotificationModel(true)}>
+              <Box alignItems='center' className=' mt-1'>
+                <VStack>
+                  <Badge
+                    bg='$red600'
+                    style={{
+                      zIndex: 10
+                    }}
+                    mb={'-$3.5'}
+                    mr={'-$1.5'}
+                    rounded={'$full'}
+                    zIndex={10}
+                    alignSelf='flex-end'
+                    variant='solid'
+                  >
+                    <BadgeText color='white'>1</BadgeText>
+                  </Badge>
+
+                  <Notification />
+                </VStack>
+              </Box>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('CommonSettings')}
+            >
               <Avatar size='sm' style={styles.avatar}>
                 <AvatarFallbackText>Jane Doe</AvatarFallbackText>
-                <AvatarImage
-                  source={{
-                    uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80'
-                  }}
-                />
-                <AvatarBadge />
+                <AvatarImage source={require('@/assets/Icons/41.png')} />
               </Avatar>
             </TouchableOpacity>
           </View>
         </View>
       </Animated.View>
+
+      <Modal
+        isOpen={NotificationModel}
+        onClose={() => {
+          setNotificationModel(false)
+        }}
+        size='full'
+        style={{ borderRadius: 50 }}
+        p='$2'
+      >
+        <ModalBackdrop />
+        <ModalContent
+          style={{
+            borderRadius: 24,
+            overflow: 'hidden',
+            backgroundColor: 'white' // Ensure background color is consistent
+          }}
+        >
+          <ModalHeader>
+            <Heading
+              size='md'
+              className='text-typography-950'
+              color='#0A1629'
+              fontFamily='MonaSans_Bold'
+            >
+              Notifications
+            </Heading>
+            <ModalCloseButton>
+              <CloseSvg />
+            </ModalCloseButton>
+          </ModalHeader>
+          <Divider />
+          <ModalBody my={'$1'}>
+            <NotificationScreen />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </View>
   )
 }
@@ -98,7 +165,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 }, // Shadow offset
     shadowOpacity: 5.1,
     shadowRadius: 10,
-    elevation: 3 
+    elevation: 3
   },
   headerContent: {
     flexDirection: 'row',
