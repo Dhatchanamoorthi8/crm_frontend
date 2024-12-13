@@ -17,10 +17,10 @@ export const useBackHandler = () => {
     console.log('logout')
     dispatch(logout())
     setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }]
-      })
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [{ name: 'Login' }]
+      // })
     }, 0) // Ensure navigation reset happens after logout state change
   }
 

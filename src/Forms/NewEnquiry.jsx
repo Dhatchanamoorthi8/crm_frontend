@@ -653,6 +653,7 @@ const NewEnquiry = () => {
                       isOpen={DatePickerOpen}
                       onClose={() => setDatePickerOpen(false)}
                       SelectedDate={handleDatepicker}
+                      mode='datetime'
                     />
                     <Text mt={'$1'}>
                       FollowUp Date <Text color='$red700'>*</Text>

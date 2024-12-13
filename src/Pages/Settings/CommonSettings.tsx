@@ -26,48 +26,14 @@ const CommonSettings = () => {
 
     const userid = state.user.userData.user.userid
 
+    const userData = state.user.userData.user
+
     const [refreshing, setRefreshing] = useState(false)
 
-    const [userData, setUserData] = useState({
-        user_id: null,
-        name: '',
-        email: '',
-        gender: '',
-        DOB: '',
-        profile: '',
-        age: null,
-        mobile: '',
-        designationName: '',
-        companyName: ''
-    })
+
 
     const [errorMsg, seterrorMsg] = useState(false)
 
-    const fetchUserData = async () => {
-        try {
-            const response = await api.get(`users/${userid}`)
-
-
-
-            if (response.status === 200) {
-                const { user_id, name, email, gender, DOB, profile,
-                    age, mobile, designationName, companyName } = response.data[0]
-                setUserData(current => ({
-                    ...current, user_id: user_id,
-                    name: name, email: email, gender: gender, DOB: DOB, profile: profile,
-                    age: age, mobile: mobile, designationName: designationName, companyName: companyName
-                }))
-
-                seterrorMsg(false)
-                return
-            }
-
-            seterrorMsg(true)
-
-        } catch (error) {
-            console.log(error);
-        }
-    }
 
 
     const onRefresh = useCallback(() => {
@@ -77,9 +43,7 @@ const CommonSettings = () => {
         }, 1000)
     }, [])
 
-    useEffect(() => {
-        fetchUserData()
-    }, [])
+
 
 
     return (
@@ -93,20 +57,24 @@ const CommonSettings = () => {
 
                             <Avatar
                                 className='bg-indigo-600'
-                                bg={ColorCodes(userData.name)}
+                                bg={ColorCodes(userData.username)}
                             >
                                 <AvatarFallbackText className='text-white'>
-                                    {userData.name}
+                                    {userData.username}
                                 </AvatarFallbackText>
 
                                 {userData.profile && (
-                                    <AvatarImage source={{ uri: userData.profile }} />
+                                    <AvatarImage
+                                        source={{
+                                            uri: `data:image/png;base64,${userData.profile}`
+                                        }}
+                                    />
                                 )}
                             </Avatar>
 
                             <VStack marginStart={"$5"}>
-                                <Heading size="sm" >{userData.name}</Heading>
-                                <Text size="sm" >{userData.designationName}</Text>
+                                <Heading size="sm" >{userData.username}</Heading>
+                                <Text size="sm" >{userData.designation}</Text>
                             </VStack>
                         </HStack>
 

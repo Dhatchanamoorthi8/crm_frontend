@@ -35,11 +35,12 @@ const Menus = ({ placement, offset, disabledKeys, trigger, menuitemsShow }) => {
             </Button>
           )
         }}
+        borderRadius={'$2xl'}
       >
         {menuitemsShow === 2 ? (
           <>
             <MenuItem
-              key='Add account'
+              key={0}
               textValue='Add account'
               onPress={() =>
                 navigateto('EnquiryReports', {
@@ -55,7 +56,7 @@ const Menus = ({ placement, offset, disabledKeys, trigger, menuitemsShow }) => {
           </>
         ) : (
           <MenuItem
-            key='View Details'
+            key={1}
             textValue='View Details'
             onPress={() =>
               navigateto('EnquiryReports', {

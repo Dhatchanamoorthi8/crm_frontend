@@ -40,6 +40,7 @@ import SplashScreenComponent from './src/Hooks/useSplashScreen'
 import ProfileScreen from './src/Pages/ProfileScreen'
 import CommonSettings from './src/Pages/Settings/CommonSettings'
 import AboutScreen from './src/Pages/Settings/AboutScreen'
+import AdminAttedanceHistory from './src/Admin/Dashboard/AdminAttedanceHistory'
 SplashScreen.preventAutoHideAsync()
 
 const Stack = createStackNavigator()
@@ -408,6 +409,54 @@ function MainNavigator () {
                     }
                   >
                     <AboutScreen route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>
+
+              <Stack.Screen
+                name='AdminAttedanceHistory'
+                options={({ route }) => ({
+                  headerShown: true,
+                  title: route?.params?.filtertype
+                    ? `${route.params.filtertype
+                        .charAt(0)
+                        .toUpperCase()}${route.params.filtertype.slice(
+                        1
+                      )} Attendance`
+                    : 'Attendance History', // Default title
+                  transitionSpec: {
+                    open: config,
+                    close: config
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
+                })}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <AdminAttedanceHistory
+                      route={route}
+                      navigation={navigation}
+                    />
                   </Suspense>
                 )}
               </Stack.Screen>

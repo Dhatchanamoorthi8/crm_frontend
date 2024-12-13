@@ -3,7 +3,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Dimensions
+  Dimensions,
+  Image
 } from 'react-native'
 import {
   View,
@@ -38,7 +39,7 @@ import { ModalContent } from '@gluestack-ui/themed'
 import { ModalBody } from '@gluestack-ui/themed'
 import { Icon } from '@gluestack-ui/themed'
 import { Input } from '@gluestack-ui/themed'
-import { DatePickerSvg, LocationSvg } from '@/assets/Icons/SvgIcons'
+import { CloseSvg, DatePickerSvg, LocationSvg } from '@/assets/Icons/SvgIcons'
 import DatePicker from '../Components/DatePicker'
 import { Keyboard } from 'react-native'
 import { ScrollView } from '@gluestack-ui/themed'
@@ -66,6 +67,8 @@ import { RefreshControl } from '@gluestack-ui/themed'
 import Alerts from '../Components/Alert'
 import { Center } from '@gluestack-ui/themed'
 import { base64men, base64women } from '@/assets/Icons/AvatarSvg'
+import MenAvatar from '@/assets/Icons/menIcon/MenAvatar'
+import GirlAvatar from '@/assets/Icons/girlsIcon/GirlAvatar'
 
 const { width } = Dimensions.get('window')
 
@@ -98,7 +101,8 @@ const EmployeeTab = () => {
     des_id: '',
     cm_id: '',
     desginationname: '',
-    comapnyname: ''
+    comapnyname: '',
+    profile: ''
   })
 
   console.log(EmployeerRegisterData)
@@ -117,13 +121,42 @@ const EmployeeTab = () => {
     SetEmployeerRegisterData(preData => ({ ...preData, DOB: Date }))
   }
 
-  const handleChangeInput = (name, value) => {
+  const handleChangeInput = async (name, value) => {
     const processedValue = typeof value === 'string' ? value.trim() : value
     try {
       SetEmployeerRegisterData(current => ({
         ...current,
         [name]: processedValue
       }))
+
+      if (name === 'gender') {
+        const randomAvatar =
+          EmployeerRegisterData.gender === 'male'
+            ? MenAvatar[Math.floor(Math.random() * MenAvatar.length)]
+            : GirlAvatar[Math.floor(Math.random() * GirlAvatar.length)]
+
+
+        const response = await fetch(
+          Image.resolveAssetSource(randomAvatar.source).uri
+        )
+        const blob = await response.blob()
+        const reader = new FileReader()
+
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1]
+
+          SetEmployeerRegisterData(current => ({
+            ...current,
+            profile: base64String
+          }))
+
+          //console.log('Base64 String:', base64String)
+        }
+
+        reader.readAsDataURL(blob)
+      }
+
+  
     } catch (error) {
       console.log(error)
     }
@@ -231,7 +264,7 @@ const EmployeeTab = () => {
           profile:
             EmployeerRegisterData.gender === 'male' ? base64men : base64women
         }
-        const response = await api.post('users', payload)
+        const response = await api.post('users', EmployeerRegisterData)
         if (response.status === 201) {
           setShowModal(false)
           setAlertProps({
@@ -278,7 +311,8 @@ const EmployeeTab = () => {
       mobile: '',
       address: '',
       des_id: '',
-      cm_id: ''
+      cm_id: '',
+      profile: ''
     }))
   }
 
@@ -289,6 +323,35 @@ const EmployeeTab = () => {
       setRefreshing(false)
     }, 1000)
   }, [])
+
+  const toggleProfileimg = async () => {
+    const randomAvatar =
+      EmployeerRegisterData.gender === 'male'
+        ? MenAvatar[Math.floor(Math.random() * MenAvatar.length)]
+        : GirlAvatar[Math.floor(Math.random() * GirlAvatar.length)]
+
+    try {
+      const response = await fetch(
+        Image.resolveAssetSource(randomAvatar.source).uri
+      )
+      const blob = await response.blob()
+      const reader = new FileReader()
+
+      reader.onloadend = () => {
+        const base64String = reader.result.split(',')[1]
+
+        SetEmployeerRegisterData(current => ({
+          ...current,
+          profile: base64String
+        }))
+      }
+
+      reader.readAsDataURL(blob)
+      return
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <>
@@ -375,8 +438,9 @@ const EmployeeTab = () => {
         onClose={() => {
           setShowModal(false)
         }}
-        size='lg'
+        size='full'
         style={{ borderRadius: 50 }}
+        p='$2'
       >
         <ModalBackdrop />
         <ModalContent
@@ -388,15 +452,11 @@ const EmployeeTab = () => {
           my={'$10'}
         >
           <ModalHeader>
-            <Heading size='md' className='text-typography-950'>
+            <Text style={{ fontSize: 18 }} fontFamily='MonaSans_Bold'>
               Employee Profile
-            </Heading>
+            </Text>
             <ModalCloseButton>
-              <Icon
-                as={CloseIcon}
-                size='md'
-                className='stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900'
-              />
+              <CloseSvg />
             </ModalCloseButton>
           </ModalHeader>
           <ModalBody>
@@ -406,6 +466,17 @@ const EmployeeTab = () => {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
             >
+              <View marginStart={'auto'} marginEnd={'auto'}>
+                <TouchableOpacity onPress={() => toggleProfileimg()}>
+                  <Image
+                    source={{
+                      uri: `data:image/png;base64,${EmployeerRegisterData.profile}`
+                    }}
+                    style={styles.image}
+                  />
+                </TouchableOpacity>
+              </View>
+
               <View>
                 <Text fontFamily='MonaSans_SemiBold' color='#0A1629'>
                   Main info
@@ -463,7 +534,7 @@ const EmployeeTab = () => {
                         rounded={'$xl'}
                       >
                         <SelectInput
-                          placeholder='Select Position'
+                          placeholder='Select Gender'
                           fontFamily='MonaSans_400Regular'
                         />
                         <SelectIcon mr='$3' as={ChevronDownIcon} />
@@ -748,6 +819,7 @@ const EmployeeTab = () => {
         isOpen={DatePickerOpen}
         onClose={() => setDatePickerOpen(false)}
         SelectedDate={handleDatepicker}
+        mode={'date'}
       />
 
       <View>
@@ -809,17 +881,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15
   },
   tabText: {
-    fontSize: 12
+    fontSize: 14,
+    fontFamily: 'MonaSans_400Regular'
   },
   activeTabText: {
     color: '#ffffff',
-    fontWeight: 'bold'
+    fontFamily: 'MonaSans_Bold'
   },
   inactiveTabText: {
     color: '#6e6e6e'
   },
   content: {
     flex: 1
+  },
+  image: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
+    borderRadius: 90
   }
 })
 

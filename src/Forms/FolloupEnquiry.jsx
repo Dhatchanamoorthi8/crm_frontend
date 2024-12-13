@@ -666,6 +666,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
           onClose={() => setDatePickerOpen(false)}
           SelectedDate={handleDatepicker}
           clearDate={handleDatedRest}
+          mode={'datetime'}
         />
       </View>
 

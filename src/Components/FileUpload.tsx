@@ -32,8 +32,14 @@ import { Camera, CameraType, CameraView, FlashMode, useCameraPermissions, } from
 import { Linking, PermissionsAndroid } from 'react-native'
 import { CloseSvg } from '@/assets/Icons/SvgIcons'
 
+import LottieView from 'lottie-react-native';
+
+const lottiePath = require('../../assets/Icons/permission.json');
+
 const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
 
+
+  const animation = useRef<LottieView>(null);
 
   const [imageBase64, setImageBase64] = useState(null)
 
@@ -312,12 +318,44 @@ const FileUpload = ({ isOpen, onClose, images, ClearImage }) => {
               </View>
             )
           ) : (
+            <>
+              <View >
+                {/* Centering the Lottie animation */}
+                <View style={styles.animationContainer}>
+                  <LottieView
+                    autoPlay
+                    loop
+                    ref={animation}
+                    style={styles.lottie}
+                    source={lottiePath}  // Make sure lottiePath is a valid imported file or path
+                  />
+                </View>
 
-            <View>
+
+              </View>
+
+              {/* Separate content for location and camera access */}
+              <View style={styles.content}>
+                <Text style={styles.heading}>Enable Access</Text>
+
+                {/* Location Permission */}
+                {/* <Text style={styles.description}>
+                    To personalize your experience, please enable location access.
+                  </Text> */}
+
+                {/* Camera Permission */}
+                <Text style={styles.description}>
+                  To use camera features, please enable camera access.
+                </Text>
+              </View>
+
+
               <Button onPress={() => requestCameraPermission()}>
-                <ButtonText>Give Permission</ButtonText>
+                <ButtonText fontFamily='MonaSans_Bold'>Enable Camera</ButtonText>
               </Button>
-            </View>
+
+            </>
+
 
           )}
 
@@ -397,6 +435,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
+  },
+
+  animationContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,  // Adds space between the animation and the content below
+  },
+  lottie: {
+    width: 500,  // Adjust size as needed
+    height: 500,
+    borderRadius: 12,  // Optional: rounded corners for the animation container
+  },
+  content: {
+    alignItems: 'center',
+    textAlign: 'center',
+    maxWidth: 320,  // Limit text width for better readability
+  },
+  heading: {
+    fontFamily: 'MonaSans_Bold',  // Use your custom font
+    fontSize: 24,
+    color: '#333',
+    marginBottom: 8,  // Space below the heading
+  },
+  description: {
+    fontFamily: 'MonaSans_400Regular',
+    fontSize: 14,
+    color: '#777',
+    lineHeight: 22,  // Adjust line height for readability
+    marginBottom: 12,  // Space between the text blocks
   },
 })
 export default FileUpload

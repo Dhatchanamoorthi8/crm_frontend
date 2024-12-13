@@ -26,7 +26,8 @@ import { ModalBackdrop } from '@gluestack-ui/themed'
 import { ModalContent } from '@gluestack-ui/themed'
 import { ModalBody } from '@gluestack-ui/themed'
 import NotificationScreen from '../Pages/Notification/NotificationScreen'
-const CustomHeader = ({ title, scrollY }) => {
+
+const CustomHeader = ({ title, scrollY, userData }) => {
   const navigation = useNavigation()
 
   const [NotificationModel, setNotificationModel] = useState(false)
@@ -103,8 +104,17 @@ const CustomHeader = ({ title, scrollY }) => {
               onPress={() => navigation.navigate('CommonSettings')}
             >
               <Avatar size='sm' style={styles.avatar}>
-                <AvatarFallbackText>Jane Doe</AvatarFallbackText>
-                <AvatarImage source={require('@/assets/Icons/41.png')} />
+                {userData.profile ? (
+                  <AvatarImage
+                    source={{
+                      uri: `data:image/png;base64,${userData.profile}`
+                    }}
+                  />
+                ) : (
+                  <AvatarFallbackText className='text-white'>
+                    {userData.username}
+                  </AvatarFallbackText>
+                )}
               </Avatar>
             </TouchableOpacity>
           </View>

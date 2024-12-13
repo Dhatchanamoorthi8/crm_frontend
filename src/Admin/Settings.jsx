@@ -28,7 +28,6 @@ const Settings = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-
         <View style={styles.tabContainer}>
           <Animated.View
             style={[styles.activeTabIndicator, { transform: [{ translateX }] }]}
@@ -68,7 +67,6 @@ const Settings = () => {
             <AddServices />
           </View>
         </View>
-        
       </View>
     </ScrollView>
   )
@@ -114,11 +112,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15
   },
   tabText: {
-    fontSize: 12
+    fontSize: 14,
+    fontFamily: 'MonaSans_400Regular'
   },
   activeTabText: {
     color: '#ffffff',
-    fontWeight: 'bold'
+    fontFamily: 'MonaSans_Bold'
   },
   inactiveTabText: {
     color: '#6e6e6e'

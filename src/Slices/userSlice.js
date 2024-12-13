@@ -23,7 +23,6 @@ const userSlice = createSlice({
     logout: state => {
       state.isAuthenticated = false
       state.userData = null
-
       AsyncStorage.removeItem('User')
     }
   },

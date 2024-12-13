@@ -3,13 +3,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Animated, Keyboard, Dimensions, ScrollView } from 'react-native'
 import DashBoardPage from '../Pages/DashBoardPage'
 import NewEnquiry from '../Forms/NewEnquiry'
-import Attendance from '../Pages/Attendance'
 import MyTabBar from './TabBar'
 import CustomHeader from '../Components/CustomHeader'
 import { ErrorBoundaryWrapper } from '../Pages/ErrorBoundary'
 import ErrorBoundary from 'react-native-error-boundary'
 import { Text, View } from '@gluestack-ui/themed'
 import { Button } from 'react-native'
+import AttendanceTab from '../Pages/Attendance/Attendance.tab'
 
 const Tab = createBottomTabNavigator()
 
@@ -132,13 +132,11 @@ const TabNavigator = () => {
             }, [navigation])
 
             return (
-              <>
-                <ErrorBoundaryWrapper>
-                  <ScrollView onScroll={handleScroll} scrollEventThrottle={16}>
-                    <DashBoardPage />
-                  </ScrollView>
-                </ErrorBoundaryWrapper>
-              </>
+              <ErrorBoundaryWrapper>
+                <ScrollView onScroll={handleScroll} scrollEventThrottle={16}>
+                  <DashBoardPage />
+                </ScrollView>
+              </ErrorBoundaryWrapper>
             )
           }}
         </Tab.Screen>
@@ -179,7 +177,7 @@ const TabNavigator = () => {
               <>
                 <ErrorBoundaryWrapper>
                   <ScrollView onScroll={handleScroll} scrollEventThrottle={16}>
-                    <Attendance />
+                    <AttendanceTab />
                   </ScrollView>
                 </ErrorBoundaryWrapper>
               </>

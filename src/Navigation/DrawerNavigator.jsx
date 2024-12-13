@@ -1,5 +1,5 @@
 import React, { useRef, lazy, Suspense } from 'react'
-import { ActivityIndicator, Text } from 'react-native'
+import { ActivityIndicator } from 'react-native'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { useSelector } from 'react-redux'
 import DrawerContent from './DrawerContent'
@@ -8,14 +8,19 @@ import { Animated } from 'react-native'
 import EmployeeTab from '../Admin/Employee.Tab.'
 import { ErrorBoundaryWrapper } from '../Pages/ErrorBoundary'
 import ErrorBoundary from 'react-native-error-boundary'
-import { View } from '@gluestack-ui/themed'
+import { View, Text } from '@gluestack-ui/themed'
 import { Button } from 'react-native'
+import AttendanceTab from '../Pages/Attendance/Attendance.tab'
+import AdminDashboard from '../Admin/Dashboard/AdminDashboard'
 const Drawer = createDrawerNavigator()
 
 const DrawerNavigator = () => {
   const LoginPage = lazy(() => import('../Pages/LoginPage'))
+
   const DashBoardPage = lazy(() => import('../Pages/DashBoardPage'))
+
   const TabNavigator = lazy(() => import('../TabNavibation/TabNav'))
+
   const Attendance = lazy(() => import('../Pages/Attendance'))
 
   const isAuthenticated = useSelector(state => state.user.isAuthenticated)
@@ -23,11 +28,21 @@ const DrawerNavigator = () => {
     isAuthenticated ? state.user.userData.user.role : null
   )
 
+  const userData = useSelector(state =>
+    isAuthenticated ? state.user.userData.user : null
+  )
+
   const screenOptions = ({ route }) => {
     const scrollY = useRef(new Animated.Value(0)).current
 
     return {
-      header: () => <CustomHeader title={route.name} scrollY={scrollY} />,
+      header: () => (
+        <CustomHeader
+          title={route.name}
+          scrollY={scrollY}
+          userData={userData}
+        />
+      ),
       drawerStyle: {
         // borderTopLeftRadius: 5,
         borderTopRightRadius: 35,
@@ -38,7 +53,7 @@ const DrawerNavigator = () => {
         shadowOpacity: 0.25,
         shadowRadius: 15,
         backgroundColor: '#FFFF',
-        width: '63%'
+        width: '80%'
       },
       drawerPosition: 'left'
     }
@@ -65,6 +80,10 @@ const DrawerNavigator = () => {
       case 'admin':
         return (
           <>
+            <Drawer.Screen name='AdminDashBoard'>
+              {renderScreen(AdminDashboard)}
+            </Drawer.Screen>
+
             <Drawer.Screen name='EmployeeTab'>
               {renderScreen(EmployeeTab)}
             </Drawer.Screen>
@@ -76,8 +95,8 @@ const DrawerNavigator = () => {
             <Drawer.Screen name='DashBoard'>
               {renderScreen(TabNavigator)}
             </Drawer.Screen>
-            <Drawer.Screen name='Attendance'>
-              {renderScreen(Attendance)}
+            <Drawer.Screen name='AttendanceTab'>
+              {renderScreen(AttendanceTab)}
             </Drawer.Screen>
           </>
         )
@@ -121,7 +140,9 @@ const DrawerNavigator = () => {
     >
       <Drawer.Navigator
         screenOptions={screenOptions}
-        drawerContent={() => <DrawerContent userrole={userRole} />}
+        drawerContent={() => (
+          <DrawerContent userrole={userRole} userData={userData} />
+        )}
       >
         {isAuthenticated ? renderDrawerScreens(userRole) : renderLoginScreen()}
       </Drawer.Navigator>

@@ -8,7 +8,12 @@ import {
   AlertDialogBody,
   ButtonGroup,
   Button,
-  ButtonText
+  ButtonText,
+  Avatar,
+  AvatarFallbackText,
+  Divider,
+  Icon,
+  ChevronRightIcon
 } from '@gluestack-ui/themed'
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer'
 import {
@@ -33,6 +38,10 @@ import Animated, {
   withSpring,
   useSharedValue
 } from 'react-native-reanimated'
+import { VStack } from '@gluestack-ui/themed'
+import { HStack } from '@gluestack-ui/themed'
+import { AvatarImage } from '@gluestack-ui/themed'
+import { ColorCodes } from '../Components/ColorCodes'
 
 const DrawerList = [
   {
@@ -44,7 +53,7 @@ const DrawerList = [
   {
     icon: Calendar,
     label: 'Attendance',
-    navigateTo: 'Attendance',
+    navigateTo: 'AttendanceTab',
     role: 'user'
   },
   // {
@@ -65,6 +74,13 @@ const DrawerList = [
   //     }
   //   ]
   // },
+
+  {
+    icon: DashBorad,
+    label: 'DashBoard',
+    navigateTo: 'AdminDashBoard',
+    role: 'admin'
+  },
 
   {
     icon: Employee,
@@ -150,10 +166,63 @@ const ChildDrawerLayout = ({ icon, label, navigateTo }) => {
   )
 }
 
-const DrawerContent = ({ userrole, userdata, }) => {
+const UserProfile = ({ userdata }) => {
+  const nav = useNavigation()
+  console.log(userdata)
 
-  
+  return (
+    <VStack space='2xl'>
+      <HStack space='md'>
+        <View>
+          <VStack space='4xl'>
+            <HStack
+              space='md'
+              justifyContent='space-between'
+              alignItems='center'
+              display='flex'
+              flexDirection='row'
+            >
+              <TouchableOpacity onPress={() => nav.navigate('Profilescreen')}>
+                <HStack space='md'>
+                  <Avatar
+                    className='bg-indigo-600'
+                    bg={ColorCodes(userdata.username)}
+                  >
+                    {userdata.profile ? (
+                      <AvatarImage
+                        source={{
+                          uri: `data:image/png;base64,${userdata.profile}`
+                        }}
+                      />
+                    ) : (
+                      <AvatarFallbackText className='text-white'>
+                        {userdata.username}
+                      </AvatarFallbackText>
+                    )}
+                  </Avatar>
+                  <VStack>
+                    <Heading size='sm' fontFamily='MonaSans_400Regular'>
+                      {userdata.username}
+                    </Heading>
+                    <Text
+                      size='sm'
+                      style={{ color: '#91929E', fontSize: 14 }}
+                      fontFamily='MonaSans_400Regular'
+                    >
+                      {userdata.role}
+                    </Text>
+                  </VStack>
+                </HStack>
+              </TouchableOpacity>
+            </HStack>
+          </VStack>
+        </View>
+      </HStack>
+    </VStack>
+  )
+}
 
+const DrawerContent = ({ userrole, userData }) => {
   const filteredDrawerList = DrawerList.filter(item => item.role === userrole)
 
   const { showAlertDialog, setShowAlertDialog, handleLogout } = useBackHandler()
@@ -164,84 +233,86 @@ const DrawerContent = ({ userrole, userdata, }) => {
     setExpandedMenu(prev => (prev === label ? null : label))
   }
 
-
-
   return (
     <>
-  
-        <View style={{ flex: 1 }}>
-          <DrawerContentScrollView>
-            <View p={'$1'} marginTop={'$10'}>
-              {filteredDrawerList.map((item, index) => (
-                <View key={index}>
-                  <DrawerLayout
-                    icon={item.icon}
-                    label={item.label}
-                    navigateTo={item.navigateTo}
-                    hasChildren={!!item.children}
-                    onToggle={toggleSubmenu}
-                    isExpanded={expandedMenu === item.label}
-                  />
-
-                  {item.children && expandedMenu === item.label && (
-                    <View style={{ paddingLeft: 20 }}>
-                      {item.children.map((child, idx) => (
-                        <ChildDrawerLayout
-                          key={idx}
-                          label={child.label}
-                          navigateTo={child.navigateTo}
-                        />
-                      ))}
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-          </DrawerContentScrollView>
-
-          <View style={styles.container}>
-            <TouchableOpacity
-              onPress={() => setShowAlertDialog(true)}
-              style={styles.row}
-            >
-              <Logout />
-              <Text style={styles.text}>Logout</Text>
-            </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <DrawerContentScrollView>
+          <View paddingLeft={'$5'} marginTop={'$5'}>
+            <UserProfile userdata={userData} />
           </View>
 
-          {/* <View style={styles.logoContainer}>
-         <Image source={image} style={styles.logo} resizeMode='contain' /> 
-        </View> */}
+          <Divider my={'$5'} />
+
+          <View p={'$1'} marginTop={'$1'}>
+            {filteredDrawerList.map((item, index) => (
+              <View key={index}>
+                <DrawerLayout
+                  icon={item.icon}
+                  label={item.label}
+                  navigateTo={item.navigateTo}
+                  hasChildren={!!item.children}
+                  onToggle={toggleSubmenu}
+                  isExpanded={expandedMenu === item.label}
+                />
+
+                {item.children && expandedMenu === item.label && (
+                  <View style={{ paddingLeft: 20 }}>
+                    {item.children.map((child, idx) => (
+                      <ChildDrawerLayout
+                        key={idx}
+                        label={child.label}
+                        navigateTo={child.navigateTo}
+                      />
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        </DrawerContentScrollView>
+
+        <View style={styles.container}>
+          <TouchableOpacity
+            onPress={() => setShowAlertDialog(true)}
+            style={styles.row}
+          >
+            <Logout />
+            <Text style={styles.text}>Logout</Text>
+          </TouchableOpacity>
         </View>
 
-        <AlertDialog
-          isOpen={showAlertDialog}
-          onClose={() => setShowAlertDialog(false)}
-        >
-          <AlertDialogBackdrop />
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <Heading size='lg'>Logout Account</Heading>
-            </AlertDialogHeader>
-            <AlertDialogBody>
-              <Text>Do you want to logout?</Text>
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <ButtonGroup space='lg'>
-                <Button
-                  variant='outline'
-                  onPress={() => setShowAlertDialog(false)}
-                >
-                  <ButtonText>Cancel</ButtonText>
-                </Button>
-                <Button bg='$error600' onPress={() => handleLogout()}>
-                  <ButtonText>Logout</ButtonText>
-                </Button>
-              </ButtonGroup>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
- 
+        {/* <View style={styles.logoContainer}>
+         <Image source={image} style={styles.logo} resizeMode='contain' /> 
+        </View> */}
+      </View>
+
+      <AlertDialog
+        isOpen={showAlertDialog}
+        onClose={() => setShowAlertDialog(false)}
+      >
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Heading size='lg'>Logout Account</Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <Text>Do you want to logout?</Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <ButtonGroup space='lg'>
+              <Button
+                variant='outline'
+                onPress={() => setShowAlertDialog(false)}
+              >
+                <ButtonText>Cancel</ButtonText>
+              </Button>
+              <Button bg='$error600' onPress={() => handleLogout()}>
+                <ButtonText>Logout</ButtonText>
+              </Button>
+            </ButtonGroup>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
