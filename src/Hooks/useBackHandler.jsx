@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { BackHandler } from 'react-native'
 import { useNavigationState, useNavigation } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
-
-import { logout } from '../Slices/userSlice'
+import { logout } from '../../Slices/userSlice'
 
 export const useBackHandler = () => {
   const navigation = useNavigation()
@@ -14,7 +13,6 @@ export const useBackHandler = () => {
   const [showAlertDialog, setShowAlertDialog] = useState(false)
 
   const handleLogout = async () => {
-    console.log('logout')
     dispatch(logout())
     setTimeout(() => {
       // navigation.reset({

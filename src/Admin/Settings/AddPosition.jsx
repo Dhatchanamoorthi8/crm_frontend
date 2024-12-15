@@ -38,7 +38,7 @@ import { Dimensions } from 'react-native'
 const AddPosition = () => {
   const screenHeight = Dimensions.get('screen').height
 
-  console.log(screenHeight, 'screenHeight')
+
 
   const [DesginationData, setDesginationData] = useState([])
 
@@ -71,7 +71,7 @@ const AddPosition = () => {
 
       if (response.status === 200) {
         setDesginationData(response.data)
-        console.log(response.data)
+
       }
     } catch (error) {
       console.log(error)
@@ -79,7 +79,7 @@ const AddPosition = () => {
   }
 
   const handlepressEdit = (id, name) => {
-    console.log(id, name)
+
     setdesginationEditData(current => ({
       ...current,
       Des_id: id,
@@ -102,7 +102,6 @@ const AddPosition = () => {
       return
     }
 
-    console.log(NewDesginationName)
 
     try {
       const response = await api.post('userdesgination', NewDesginationName)
@@ -116,7 +115,6 @@ const AddPosition = () => {
           visible: true
         })
 
-        console.log(response.data)
       }
     } catch (error) {
       console.log(error)
@@ -147,7 +145,6 @@ const AddPosition = () => {
         `userdesgination/${desginationEditData.Des_id}`
       )
 
-      console.log(response.data)
 
       if (response.status === 200) {
         apiCall()

@@ -40,7 +40,7 @@ const Menus = ({ placement, offset, disabledKeys, trigger, menuitemsShow }) => {
         {menuitemsShow === 2 ? (
           <>
             <MenuItem
-              key={0}
+              key={'Add account'}
               textValue='Add account'
               onPress={() =>
                 navigateto('EnquiryReports', {
@@ -56,7 +56,7 @@ const Menus = ({ placement, offset, disabledKeys, trigger, menuitemsShow }) => {
           </>
         ) : (
           <MenuItem
-            key={1}
+            key={'View Details'}
             textValue='View Details'
             onPress={() =>
               navigateto('EnquiryReports', {

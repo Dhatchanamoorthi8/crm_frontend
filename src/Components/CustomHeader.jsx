@@ -26,6 +26,7 @@ import { ModalBackdrop } from '@gluestack-ui/themed'
 import { ModalContent } from '@gluestack-ui/themed'
 import { ModalBody } from '@gluestack-ui/themed'
 import NotificationScreen from '../Pages/Notification/NotificationScreen'
+import { ColorCodes } from './ColorCodes'
 
 const CustomHeader = ({ title, scrollY, userData }) => {
   const navigation = useNavigation()
@@ -103,7 +104,11 @@ const CustomHeader = ({ title, scrollY, userData }) => {
             <TouchableOpacity
               onPress={() => navigation.navigate('CommonSettings')}
             >
-              <Avatar size='sm' style={styles.avatar}>
+              <Avatar
+                size='sm'
+                style={styles.avatar}
+                bg={ColorCodes(userData.username)}
+              >
                 {userData.profile ? (
                   <AvatarImage
                     source={{

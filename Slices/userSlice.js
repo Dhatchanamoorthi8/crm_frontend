@@ -8,23 +8,39 @@ export const loadUserData = createAsyncThunk('user/loadUserData', async () => {
 
 const initialState = {
   isAuthenticated: false,
-  userData: {}
+  userData: {} // Make sure it's always an object
 }
 
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
+    // Login reducer
     login: (state, action) => {
       state.isAuthenticated = true
       state.userData = action.payload
+
+ 
+
       AsyncStorage.setItem('User', JSON.stringify(action.payload))
     },
+    // Logout reducer
     logout: state => {
       state.isAuthenticated = false
-      state.userData = null
-
+      state.userData = {} // Reset to an empty object instead of null
       AsyncStorage.removeItem('User')
+    },
+
+    // Update user data reducer
+    updateUserData: (state, action) => {
+      const updatedData = { ...action.payload }
+
+
+      // Save the updated state
+      state.userData = updatedData
+
+      AsyncStorage.setItem('User', JSON.stringify(state.userData))
+
     }
   },
   extraReducers: builder => {
@@ -37,5 +53,8 @@ const userSlice = createSlice({
   }
 })
 
-export const { login, logout } = userSlice.actions
+// Export actions
+export const { login, logout, updateUserData } = userSlice.actions
+
+// Export reducer
 export default userSlice.reducer

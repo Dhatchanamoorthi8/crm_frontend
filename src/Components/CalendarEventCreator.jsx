@@ -14,25 +14,25 @@ const CalendarEventCreator = ({
 
   useEffect(() => {
     ;(async () => {
-      console.log('Requesting calendar permissions...')
+
       const { status } = await Calendar.requestCalendarPermissionsAsync()
 
       if (status === 'granted') {
-        console.log('Permissions granted. Fetching calendars...')
+    
         const calendars = await Calendar.getCalendarsAsync()
-        console.log('Available calendars:', calendars)
+ 
 
         const defaultCalendar = calendars.find(
           calendar => calendar.source.name === 'Default'
         )
 
         if (defaultCalendar) {
-          console.log('Using default calendar:', defaultCalendar.id)
+      
           setCalendarId(defaultCalendar.id)
         } else {
-          console.log('Default calendar not found. Creating a new calendar...')
+       
           const newCalendarId = await createCalendar()
-          console.log('New calendar created with ID:', newCalendarId)
+
           setCalendarId(newCalendarId)
         }
       } else {
@@ -69,7 +69,7 @@ const CalendarEventCreator = ({
   }
 
   const createEvent = async () => {
-    console.log('Attempting to create event...')
+
 
     if (!calendarId) {
       Alert.alert('Error', 'Calendar ID is not available.')
@@ -87,12 +87,12 @@ const CalendarEventCreator = ({
       notes: notes || ''
     }
 
-    console.log('Event Details:', eventDetails)
+
 
     try {
       const eventId = await Calendar.createEventAsync(calendarId, eventDetails)
 
-      console.log('Event created successfully with ID:', eventId)
+
 
       scheduleNotification(title, startDate) // Schedule notification
       Alert.alert('Success', 'Event has been created in the calendar!')

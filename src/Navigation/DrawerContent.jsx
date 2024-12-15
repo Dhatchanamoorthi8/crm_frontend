@@ -115,7 +115,7 @@ const DrawerLayout = ({
     routes[routes.length - 1]
   )
 
-  console.log(focusedRouteName, navigateTo, 'focusedRouteName')
+
 
   const isFocused = focusedRouteName === navigateTo
   const iconColor = isFocused ? '#3F8CFF' : '#7D8592'
@@ -168,7 +168,6 @@ const ChildDrawerLayout = ({ icon, label, navigateTo }) => {
 
 const UserProfile = ({ userdata }) => {
   const nav = useNavigation()
-  console.log(userdata)
 
   return (
     <VStack space='2xl'>

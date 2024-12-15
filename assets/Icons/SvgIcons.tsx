@@ -2,7 +2,7 @@ import { Image, styled, View } from "@gluestack-ui/themed";
 import { Svg, Path, Mask, G, Defs, ClipPath, Rect } from "react-native-svg";
 
 export const DashBorad = ({ color }) => {
-    console.log(color, 'color name');
+
     return (
         <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <Path
@@ -18,7 +18,6 @@ export const DashBorad = ({ color }) => {
 
 export const Calendar = ({ color }) => {
 
-    console.log(color);
 
     return (
         <Svg width="18" height="20" viewBox="0 0 18 20" fill="none" >
@@ -32,7 +31,6 @@ export const Calendar = ({ color }) => {
 
 export const Employee = ({ color }) => {
 
-    console.log(color);
 
     return (
         <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -512,6 +510,15 @@ export const AddSvg = () => {
         </Svg>
     );
 };
+
+export const AttachPinSvg = () => {
+    return (
+        <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" >
+            <Path fillRule="evenodd" clipRule="evenodd" d="M12.2412 1.46512C14.1947 -0.488373 17.362 -0.488373 19.3154 1.46512C21.2097 3.35941 21.2671 6.395 19.4873 8.35882L19.3151 8.53972L10.1154 17.7293C8.94344 18.9013 7.04324 18.9013 5.87123 17.7293C4.7461 16.6042 4.7011 14.808 5.73658 13.6288L5.87165 13.4847L14.3616 5.0047C14.7524 4.61441 15.3856 4.61478 15.7759 5.00553C16.1361 5.36623 16.1635 5.93348 15.8583 6.32559L15.775 6.41975L7.28544 14.8993C6.89448 15.2903 6.89448 15.9242 7.28544 16.3151C7.64633 16.676 8.21419 16.7038 8.60722 16.3981L8.70161 16.3147L17.9012 7.12512C19.0737 5.95268 19.0737 4.05177 17.9012 2.87933C16.7757 1.75379 14.9788 1.70877 13.7995 2.74427L13.6554 2.87933L4.46544 12.0693C2.51152 14.0233 2.51152 17.1912 4.46544 19.1451C6.36016 21.0398 9.39642 21.0972 11.3603 19.3174L11.5412 19.1451L20.7312 9.95512C21.1218 9.56459 21.7549 9.56459 22.1454 9.95512C22.5059 10.3156 22.5337 10.8828 22.2286 11.2751L22.1454 11.3693L12.9554 20.5593C10.2205 23.2943 5.7862 23.2943 3.05123 20.5593C0.378415 17.8865 0.31767 13.5908 2.86899 10.8442L3.05123 10.6551L12.2412 1.46512Z" fill="#6D5DD3" />
+        </Svg>
+    );
+};
+
 
 
 

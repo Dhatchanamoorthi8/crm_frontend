@@ -1,6 +1,4 @@
 const MenAvatar = [
-
-
     {
         id: 1,
         source: require("./Boy1.png"),

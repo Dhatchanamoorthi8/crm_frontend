@@ -22,7 +22,7 @@ const Contact = ({ isOpen, onClose, Datas, selectedMode }) => {
     company_name
   } = Datas
 
-  console.log(contact)
+
 
   const handlePhonePress = () => {
     Linking.openURL(`tel:+91${contact}`)

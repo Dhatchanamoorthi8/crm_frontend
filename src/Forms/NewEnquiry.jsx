@@ -11,7 +11,8 @@ import {
   InputField,
   KeyboardAvoidingView,
   Text,
-  Textarea
+  Textarea,
+  TrashIcon
 } from '@gluestack-ui/themed'
 import { ScrollView, View, FormControl, VStack } from '@gluestack-ui/themed'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -37,6 +38,10 @@ import { Box } from '@gluestack-ui/themed'
 import { BadgeText } from '@gluestack-ui/themed'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { onBackPress } from '../Hooks/useBackHandler'
+import { Image } from 'react-native'
+import { Icon } from '@gluestack-ui/themed'
+import { AttachPinSvg } from '@/assets/Icons/SvgIcons'
+import ImagePreview from '../Components/ImagePreview'
 
 const NewEnquiry = () => {
   const focus = useIsFocused()
@@ -68,7 +73,7 @@ const NewEnquiry = () => {
 
   const [refreshData, setRefreshData] = useState(false)
 
-  console.log(EnquiryData)
+  const [isImageViewer, setisImageViewer] = useState(false)
 
   // const calendar = CalendarEventCreator({
   //   title,
@@ -120,8 +125,6 @@ const NewEnquiry = () => {
   }
 
   const handleUploadRest = async image => {
-    console.log(image)
-
     SetEnquiryData(prevData => ({
       ...prevData,
       images: ''
@@ -136,7 +139,6 @@ const NewEnquiry = () => {
   }
 
   const handleLocation = async location => {
-    console.log(location)
     SetEnquiryData(prevData => ({
       ...prevData,
       latitude: location.latitude,
@@ -168,21 +170,15 @@ const NewEnquiry = () => {
   })
 
   const validate = () => {
-    console.log(EnquiryData)
-
     let isValid = true
     const newErrors = {}
 
-    console.log('Validation started')
-
     if (!EnquiryData.company_name.trim()) {
-      console.log('Validation failed: company_name is required')
       newErrors.company_name = 'Company Name is required'
       isValid = false
     }
 
     if (!EnquiryData.client_name.trim()) {
-      console.log('Validation failed: client_name is required')
       newErrors.client_name = 'Client Name is required'
       isValid = false
     }
@@ -192,7 +188,6 @@ const NewEnquiry = () => {
       !EnquiryData.contact.trim() ||
       !/^\d{10}$/.test(EnquiryData.contact.trim())
     ) {
-      console.log('Validation failed: contact is invalid')
       newErrors.contact = 'Valid Contact Number is required (10 digits)'
       isValid = false
     }
@@ -203,27 +198,23 @@ const NewEnquiry = () => {
       !EnquiryData.email.trim() ||
       !/\S+@\S+\.\S+/.test(EnquiryData.email.trim())
     ) {
-      console.log('Validation failed: email is invalid')
       newErrors.email = 'Valid Email is required'
       isValid = false
     }
 
     // Check if 'services' is provided and not empty
     if (EnquiryData.services === '') {
-      console.log('Validation failed: services is required')
       newErrors.services = 'Service Need is required'
       isValid = false
     }
 
     // Check if 'visit_type' is provided and not empty
     if (EnquiryData.visit_type === '') {
-      console.log('Validation failed: visit_type is required')
       newErrors.visit_type = 'Visit Type is required'
       isValid = false
     }
 
     if (EnquiryData.visit_type === 'TeleCall' && newErrors.CallStatus === '') {
-      console.log('Please Select Call Status')
       newErrors.CallStatus = 'Please Select TeleCall Status'
 
       isValid = false
@@ -231,7 +222,6 @@ const NewEnquiry = () => {
 
     // Check if 'Followup_type' is provided and not empty
     if (EnquiryData.Followup_type === '') {
-      console.log('Validation failed: Followup_type is required')
       newErrors.Followup_type = 'Follow Up Type is required'
       isValid = false
     }
@@ -241,14 +231,12 @@ const NewEnquiry = () => {
       EnquiryData.Followup_type === 'Followup' &&
       (!EnquiryData.followup_Date || !EnquiryData.followup_Date.trim())
     ) {
-      console.log('Validation failed: followup_Date is required')
       newErrors.followup_Date = 'Followup Date is required'
       isValid = false
     }
 
     // Check if 'client_address' is provided and not empty
     if (!EnquiryData.client_address || !EnquiryData.client_address.trim()) {
-      console.log('Validation failed: client_address is required')
       newErrors.client_address = 'Client Address is required'
       isValid = false
     }
@@ -257,7 +245,6 @@ const NewEnquiry = () => {
       EnquiryData.visit_type === 'LiveVisit' &&
       (!EnquiryData.images || !EnquiryData.images.trim())
     ) {
-      console.log('Validation failed: Images is required')
       newErrors.images = 'Visited Images is required'
       isValid = false
     }
@@ -266,7 +253,6 @@ const NewEnquiry = () => {
       EnquiryData.visit_type === 'LiveVisit' &&
       (!EnquiryData.latitude || !EnquiryData.longitude)
     ) {
-      console.log('Validation failed: Images is required')
       newErrors.images = 'Visited Images is required'
       isValid = false
     }
@@ -276,7 +262,6 @@ const NewEnquiry = () => {
         !EnquiryData.latitude || !EnquiryData.longitude
 
       if (isLocationDataMissing) {
-        console.log('Validation failed: Location capture is required')
         // Prompt the user with a validation message for missing location data
         newErrors.location =
           'Location capture is required to proceed with the visit'
@@ -287,7 +272,6 @@ const NewEnquiry = () => {
     }
 
     if (EnquiryData.Remarks === '') {
-      console.log('Remarks is required')
       newErrors.Remarks = 'Remarks is required'
       isValid = false
     }
@@ -342,12 +326,8 @@ const NewEnquiry = () => {
 
   const handleSubmit = async () => {
     if (validate()) {
-      console.log(EnquiryData)
-
-      console.log('Validation passed, submitting API call')
       try {
         const response = await api.post('/client-vist/newenquiry', EnquiryData)
-        console.log('API response:', response.data)
         setAlertProps({
           alertType: 'Success',
           content: 'Your enquiry has been submitted successfully!',
@@ -371,8 +351,6 @@ const NewEnquiry = () => {
         })
       }
     } else {
-      console.log('Validation failed, API call not triggered')
-
       setAlertProps({
         alertType: 'Warning',
         content: 'Please ensure all required fields are filled correctly.',
@@ -390,6 +368,18 @@ const NewEnquiry = () => {
       setRefreshing(false)
     }, 1000)
   }, [])
+
+  const [uploadfileDatas, setuploadfileDatas] = useState({
+    filename: '',
+    size: ''
+  })
+  const uploadFileData = (filename, size) => {
+    setuploadfileDatas(current => ({
+      ...current,
+      filename: filename,
+      size: size
+    }))
+  }
 
   return (
     <KeyboardAvoidingView
@@ -429,7 +419,7 @@ const NewEnquiry = () => {
                 <Text fontFamily='MonaSans_400Regular'>
                   Company Name <Text color='$red700'>*</Text>
                 </Text>
-                <Input mt={'$1'}>
+                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
                   <InputField
                     type='text'
                     value={EnquiryData.company_name}
@@ -453,7 +443,7 @@ const NewEnquiry = () => {
                 <Text fontFamily='MonaSans_400Regular'>
                   Client Name <Text color='$red700'>*</Text>
                 </Text>
-                <Input mt={'$1'}>
+                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
                   <InputField
                     type='text'
                     value={EnquiryData.client_name}
@@ -485,7 +475,7 @@ const NewEnquiry = () => {
                 <Text fontFamily='MonaSans_400Regular'>
                   Contact No <Text color='$red700'>*</Text>
                 </Text>
-                <Input mt={'$1'}>
+                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
                   <InputField
                     type='text'
                     keyboardType='phone-pad'
@@ -507,7 +497,7 @@ const NewEnquiry = () => {
                 <Text fontFamily='MonaSans_400Regular'>
                   Email <Text color='$red700'>*</Text>
                 </Text>
-                <Input mt={'$1'}>
+                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
                   <InputField
                     type='text'
                     value={EnquiryData.email}
@@ -689,6 +679,7 @@ const NewEnquiry = () => {
                 isReadOnly={false}
                 isInvalid={false}
                 isDisabled={false}
+                style={{ borderRadius: 14 }}
               >
                 <TextareaInput
                   placeholder='Enter Client Address...'
@@ -716,6 +707,7 @@ const NewEnquiry = () => {
                 isReadOnly={false}
                 isInvalid={false}
                 isDisabled={false}
+                style={{ borderRadius: 14 }}
               >
                 <TextareaInput
                   placeholder='Enter Remarks...'
@@ -744,7 +736,7 @@ const NewEnquiry = () => {
                 </Button>
               </TouchableOpacity> */}
 
-              <Box
+              {/* <Box
                 alignItems='center'
                 mt={EnquiryData.images !== '' ? '$4' : '$6'}
               >
@@ -776,7 +768,81 @@ const NewEnquiry = () => {
                     </ButtonText>
                   </Button>
                 </VStack>
-              </Box>
+              </Box> */}
+
+              {EnquiryData.images === '' && (
+                <TouchableOpacity onPress={() => setUploadedOpen(true)}>
+                  <Box
+                    bg='#DCEEFC'
+                    alignItems='center'
+                    justifyContent='center'
+                    my='$5'
+                    style={{ borderRadius: 14, height: 54 }}
+                  >
+                    <View display='flex' flexDirection='row' gap='$3'>
+                      <AttachPinSvg />
+                      <Text color={'#0A1629'} fontFamily='NunitoSans_Regular'>
+                        Attached files For Client Visit
+                      </Text>
+                    </View>
+                  </Box>
+                </TouchableOpacity>
+              )}
+
+              {EnquiryData.images !== '' && (
+                <Box
+                  bg='#FFFFFF'
+                  style={{
+                    borderRadius: 14,
+                    height: 70,
+                    borderWidth: 1,
+                    borderColor: '#D8DDE5'
+                  }}
+                >
+                  <HStack my='$3' mx='$2'>
+                    <View display='flex' flexDirection='row'>
+                      <TouchableOpacity onPress={() => setisImageViewer(true)}>
+                        <Image
+                          source={{
+                            uri: `data:image/jpeg;base64,${EnquiryData.images}`
+                          }}
+                          style={{
+                            height: 44,
+                            width: 44,
+                            borderRadius: 14
+                          }}
+                        />
+                      </TouchableOpacity>
+
+                      <VStack
+                        mx='$4'
+                        w={
+                          uploadfileDatas.filename.length > 40 ? '$56' : 'auto'
+                        }
+                      >
+                        <Text
+                          fontFamily='NunitoSans_Bold'
+                          style={{ fontSize: 12 }}
+                        >
+                          {uploadfileDatas.filename}
+                        </Text>
+                        <Text
+                          fontFamily='NunitoSans_Regular'
+                          style={{ fontSize: 12 }}
+                        >
+                          {uploadfileDatas.size}
+                        </Text>
+                      </VStack>
+                    </View>
+
+                    <View>
+                      <TouchableOpacity onPress={handleUploadRest}>
+                        <Icon as={TrashIcon} size='md' color='red' />
+                      </TouchableOpacity>
+                    </View>
+                  </HStack>
+                </Box>
+              )}
 
               {errors.images && (
                 <HStack flexDirection='row' gap={'$1'}>
@@ -808,11 +874,13 @@ const NewEnquiry = () => {
       </ScrollView>
 
       {/* Show the file upload modal when the button is pressed */}
+
       <FileUpload
         isOpen={uploadedOpen}
         onClose={handleCloseUpload}
         images={handleImageUpload} // Pass image upload handler
         ClearImage={handleUploadRest}
+        fileData={(filename, size) => uploadFileData(filename, size)}
       />
 
       <View
@@ -842,6 +910,12 @@ const NewEnquiry = () => {
           )}
         </Center>
       </View>
+
+      <ImagePreview
+        imageBase64={EnquiryData.images}
+        modalVisible={isImageViewer}
+        closeModal={() => setisImageViewer(false)}
+      />
     </KeyboardAvoidingView>
   )
 }

@@ -4,16 +4,20 @@ import {
   AvatarFallbackText,
   AvatarImage,
   Card,
+  Center,
   Heading,
+  Icon,
   Image,
+  Menu,
+  MenuItem,
   ScrollView
 } from '@gluestack-ui/themed'
 import { Avatar } from '@gluestack-ui/themed'
 import { AvatarBadge } from '@gluestack-ui/themed'
 import { View, Text } from '@gluestack-ui/themed'
-import { useNavigation } from '@react-navigation/native'
-import React, { useCallback, useState } from 'react'
-import { StyleSheet } from 'react-native'
+import { useIsFocused, useNavigation } from '@react-navigation/native'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Alert, StyleSheet } from 'react-native'
 import { TouchableOpacity } from 'react-native'
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { RefreshControl } from 'react-native-gesture-handler'
@@ -24,27 +28,135 @@ import { Platform } from 'react-native'
 import { VStack } from '@gluestack-ui/themed'
 import { HStack } from '@gluestack-ui/themed'
 import { Divider } from '@gluestack-ui/themed'
+import { MenuItemLabel } from '@gluestack-ui/themed'
+import { MenuSeparator } from '@gluestack-ui/themed'
+import { TrashIcon, EditIcon } from '@gluestack-ui/themed'
+import api from '@/src/Services/axiosConfig'
+import Spinner from 'react-native-loading-spinner-overlay'
+import ImagePreview from '@/src/Components/ImagePreview'
 
-const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
+const DashBoardCards = ({ user_id, isRefresh }) => {
+
+
+  console.log(isRefresh, 'isRefresh   data ===================================')
+
   const nav = useNavigation()
+
+  const focus = useIsFocused()
 
   const [refreshing, setRefreshing] = useState(false)
 
-  const handlePartynameclick = async item => {
-    console.log('called', item)
+  const [loader, setloader] = useState(false)
 
+  const [CardCount, SetCardCount] = useState({
+    newEnquiry: 0,
+    Followup: 0
+  })
+
+  const target = 10
+  const currentProgress = CardCount.newEnquiry
+
+  const fillPercentage = (Number(currentProgress) / Number(target)) * 100
+
+  const [TableData, SetTableData] = useState([])
+
+  const [TaskData, SetTaskData] = useState([])
+
+  const handlePartynameclick = async item => {
     const Props = {
       id: item
     }
     nav.navigate('Followup', { Props })
   }
 
+  const handleDeleteTask = (id, taskname) => {
+    try {
+      Alert.alert(
+        'Delete Task',
+        `Do you want to delete this task: "${taskname}"?`,
+        [
+          {
+            text: 'No',
+            onPress: () => console.log('Task deletion cancelled'),
+            style: 'cancel'
+          },
+          {
+            text: 'Yes',
+            onPress: async () => {
+              await deletetask()
+            }
+          }
+        ],
+        { cancelable: true }
+      )
+
+      // Function to delete the task
+      async function deletetask () {
+        try {
+          const response = await api.delete(`user-task/${id}`)
+          if (response.status === 200) {
+            fetchData()
+            Alert.alert(
+              'Task Deleted',
+              `The task "${taskname}" has been deleted successfully.`
+            )
+            // Update your local state or refresh task list here
+          }
+        } catch (error) {
+          console.error('Error deleting task:', error)
+          Alert.alert(
+            'Deletion Failed',
+            'There was an error while trying to delete the task. Please try again.'
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Error handling task delete:', error)
+    }
+  }
+
+  const fetchData = async () => {
+    setloader(true)
+    try {
+      const [dashboardResponse, taskResponse] = await Promise.all([
+        api.get(`dashboard/${user_id}`),
+        api.get(`user-task/${user_id}`)
+      ])
+
+      if (dashboardResponse.status === 200) {
+        setloader(false)
+        SetTableData(dashboardResponse.data.followUpClients)
+        SetCardCount(prevData => ({
+          ...prevData,
+          newEnquiry: dashboardResponse.data.newClientsCount,
+          Followup: dashboardResponse.data.followUpClientsCount
+        }))
+        SetTaskData(taskResponse.data)
+      }
+    } catch (error) {
+      console.log(error)
+      setloader(false)
+    }
+  }
+
+  useEffect(() => {
+    if (focus) {
+      fetchData()
+    }
+  }, [isRefresh])
+
   const onRefresh = useCallback(() => {
     setRefreshing(true)
+    fetchData()
     setTimeout(() => {
       setRefreshing(false)
     }, 1000)
   }, [])
+
+  const [isImageViewer, setisImageViewer] = useState(false)
+
+  const [ProfileViewImgae, setProfileViewImgae] = useState(null)
+
   return (
     <>
       <ScrollView
@@ -284,7 +396,7 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
               {TableData.length > 0 ? (
                 TableData.map((item, index) => (
                   <TouchableOpacity
-                    key={item.id} // Use a unique key for each item
+                    key={item} // Use a unique key for each item
                     onPress={() => handlePartynameclick(item.id)} // Trigger action on press
                     style={{
                       width: '45%',
@@ -292,6 +404,7 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                     }}
                   >
                     <Card
+                      key={index}
                       variant='elevated'
                       style={{
                         marginBottom: 16,
@@ -329,14 +442,15 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                         style={{
                           marginTop: 8,
                           color: '#0A1629',
-                          fontFamily: 'MonaSans_Bold'
+                          fontFamily: 'NunitoSans_Bold',
+                          fontSize: 16
                         }}
                         isTruncated={true}
                       >
                         {item.company_name}
                       </Text>
                       <Text
-                        fontFamily='MonaSans_400Regular'
+                        fontFamily='NunitoSans_Regular'
                         isTruncated={true}
                         style={{ fontSize: 12 }}
                       >
@@ -370,15 +484,58 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                     justifyContent='space-between'
                   >
                     <View alignItems='flex-start'>
-                      <Text fontFamily='MonaSans_Bold' fontSize='$xl'>
+                      <Text fontFamily='NunitoSans_Bold' fontSize='$xl'>
                         Task
                       </Text>
                     </View>
 
                     <View alignItems='flex-start'>
-                      <Text fontFamily='MonaSans_400Regular' color='$blue700'>
-                        View More
-                      </Text>
+                      <View>
+                        <Menu
+                          placement='bottom'
+                          offset={2}
+                          trigger={({ ...triggerProps }) => {
+                            return (
+                              <TouchableOpacity {...triggerProps}>
+                                <Entypo
+                                  name='dots-three-vertical'
+                                  size={24}
+                                  color='black'
+                                />
+                              </TouchableOpacity>
+                            )
+                          }}
+                          style={{ borderRadius: 10 }}
+                        >
+                          <MenuItem key={'Edit Task'} textValue='Edit Task'>
+                            <Icon as={EditIcon} size='sm' mr={'$2'} />
+                            <MenuItemLabel
+                              size='sm'
+                              fontFamily='MonaSans_Black'
+                            >
+                              Edit Task
+                            </MenuItemLabel>
+                          </MenuItem>
+
+                          <MenuSeparator />
+
+                          <MenuItem
+                            key={'Delete Task'}
+                            textValue='  Delete Task'
+                            onPress={() =>
+                              handleDeleteTask(item.taskid, item.Taskname)
+                            }
+                          >
+                            <Icon as={TrashIcon} size='sm' mr={'$2'} />
+                            <MenuItemLabel
+                              size='sm'
+                              fontFamily='MonaSans_Black'
+                            >
+                              Delete Task
+                            </MenuItemLabel>
+                          </MenuItem>
+                        </Menu>
+                      </View>
                     </View>
                   </View>
 
@@ -391,11 +548,24 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                       >
                         <HStack space='md'>
                           {item.taskprofile ? (
-                            <Image
-                              source={{ uri: item.taskprofile }}
-                              alt='task-images'
-                              style={{ height: 60, width: 60 }}
-                            />
+                            <TouchableOpacity
+                              onPress={() => {
+                                setProfileViewImgae(item.taskprofile)
+                                setisImageViewer(true)
+                              }}
+                            >
+                              <Image
+                                source={{
+                                  uri: `data:image/jpeg;base64,${item.taskprofile}`
+                                }}
+                                alt='task-images'
+                                style={{
+                                  height: 60,
+                                  width: 60,
+                                  borderRadius: 14
+                                }}
+                              />
+                            </TouchableOpacity>
                           ) : (
                             <Avatar
                               className='bg-indigo-600'
@@ -410,7 +580,7 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                           <VStack>
                             <Text
                               size='sm'
-                              fontFamily='MonaSans_400Regular'
+                              fontFamily='NunitoSans_Regular'
                               style={{ color: '#91929E', fontSize: 14 }}
                             >
                               TSN000{index + 1234}
@@ -419,7 +589,7 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                               my='$2'
                               size='sm'
                               style={{ color: '#0A1629', fontSize: 18 }}
-                              fontFamily='MonaSans_Bold'
+                              fontFamily='NunitoSans_Bold'
                             >
                               {item.Taskname}
                             </Text>
@@ -446,7 +616,7 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                       }}
                     >
                       <Calendar color={'#7D8592'} />
-                      <Text color='#7D8592' fontFamily='MonaSans_SemiBold'>
+                      <Text color='#7D8592' fontFamily='NunitoSans_Regular'>
                         Created{' '}
                         {new Date(item.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
@@ -496,12 +666,12 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
 
                   <View>
                     <View>
-                      <Text color='#0A1629' fontFamily='MonaSans_Bold'>
+                      <Text color='#0A1629' fontFamily='NunitoSans_Bold'>
                         Project Data
                       </Text>
                     </View>
 
-                    <View my="$3">
+                    <View my='$3'>
                       <Text color='#0A1629' fontFamily='MonaSans_400Regular'>
                         {item.Description}
                       </Text>
@@ -510,22 +680,40 @@ const DashBoardCards = ({ TableData, fillPercentage, CardCount, TaskData }) => {
                 </Card>
               ))
             ) : (
-              <View mt='$4' marginStart='auto' marginEnd='auto'>
-                <View mx='$12'>
-                  <EmptyTask />
-                  <Text
-                    textAlign='center'
-                    fontFamily='MonaSans_SemiBold'
-                    my='$2'
-                  >
-                    There are no tasks in this project yet. Let's add them!
-                  </Text>
+              <Card
+                variant='elevated'
+                mx='$2'
+                my='$3'
+                rounded='$2xl'
+                style={styles.card}
+              >
+                <View mt='$4' marginStart='auto' marginEnd='auto'>
+                  <View mx='$12'>
+                    <EmptyTask />
+                    <Text
+                      textAlign='center'
+                      fontFamily='MonaSans_SemiBold'
+                      my='$2'
+                    >
+                      There are no tasks in this project yet. Let's add them!
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              </Card>
             )}
           </View>
         </View>
       </ScrollView>
+
+      <Center>
+        <Spinner size='large' visible={loader} />
+      </Center>
+
+      <ImagePreview
+        imageBase64={ProfileViewImgae}
+        modalVisible={isImageViewer}
+        closeModal={() => setisImageViewer(false)}
+      />
     </>
   )
 }

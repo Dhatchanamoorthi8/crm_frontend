@@ -1,30 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import { ResizeMode, Video } from "expo-av";
+import LottieView from "lottie-react-native";
+import { Text } from "@gluestack-ui/themed";
+
+const lottiePath = require('../../assets/Icons/logosplash.json');
 
 const SplashScreen = ({ onFinish }) => {
     const [isReady, setIsReady] = useState(false);
 
+    const animation = useRef<LottieView>(null);
+
     useEffect(() => {
         if (isReady) {
-            setTimeout(() => onFinish(), 1500); // Duration of GIF or video
+            setTimeout(() => onFinish(), 500);
         }
     }, [isReady]);
 
     return (
         <View style={styles.container}>
-            <Video
-                source={require("../../assets/splash.mp4")} // Replace with your video file
-                style={styles.video}
-                shouldPlay
-                isLooping={false}
-                resizeMode={ResizeMode.CONTAIN}
-                onPlaybackStatusUpdate={(status) => {
-                    if (status.isLoaded && !status.isPlaying && status.didJustFinish) {
-                        setIsReady(true);
-                    }
-                }}
-            />
+            {lottiePath ? (
+                <LottieView
+                    autoPlay
+                    loop={false} // Ensure the animation does not loop infinitely
+                    ref={animation}
+                    style={styles.lottie}
+                    source={lottiePath}
+                    onAnimationFinish={() => setIsReady(true)} // This ensures `isReady` updates after animation finishes
+                />
+
+            ) : (
+                <View>
+                    <Text style={{ color: '#fff' }}>Loading Animation...</Text>
+                </View>
+            )}
+
         </View>
     );
 };
@@ -35,11 +45,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         height: '100%',
-        backgroundColor:'#000'
+        backgroundColor: '#fff', // Change this to white or other colors
     },
-    video: {
+    lottie: {
         width: Dimensions.get("window").width,
-        height: '100%',
+        height: 300,
+        borderRadius: 12,  // Optional: rounded corners for the animation container
     },
 });
 

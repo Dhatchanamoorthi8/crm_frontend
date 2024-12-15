@@ -3,14 +3,12 @@ import React from 'react'
 
 // Function to determine badge color based on client name
 export const ColorCodes = clientName => {
-  console.log(clientName, '999999999999999999')
-
   const firstLetter = clientName.charAt(0).toLowerCase()
 
   // Return color based on the first letter of the name
   switch (firstLetter) {
     case 'a':
-      return '#2F3C7E,' // Orange
+      return '#101820' // Orange
     case 'b':
       return '#101820' // Orange
     case 'c':

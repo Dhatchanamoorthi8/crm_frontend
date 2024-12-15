@@ -37,7 +37,6 @@ import { Dimensions } from 'react-native'
 const AddCompany = () => {
   const screenHeight = Dimensions.get('screen').height
 
-  console.log(screenHeight, 'screenHeight')
 
   const [CompanyData, setCompanyData] = useState([])
 
@@ -70,7 +69,6 @@ const AddCompany = () => {
 
       if (response.status === 200) {
         setCompanyData(response.data)
-        console.log(response.data)
       }
     } catch (error) {
       console.log(error)
@@ -78,7 +76,6 @@ const AddCompany = () => {
   }
 
   const handlepressEdit = (id, name) => {
-    console.log(id, name)
     setcompanyEditData(current => ({
       ...current,
       cm_id: id,
@@ -112,7 +109,6 @@ const AddCompany = () => {
           visible: true
         })
 
-        console.log(response.data)
       }
     } catch (error) {
       console.log(error)
@@ -143,7 +139,6 @@ const AddCompany = () => {
         `companymaster/${companyEditData.cm_id}`
       )
 
-      console.log(response.data)
 
       if (response.status === 200) {
         apiCall()

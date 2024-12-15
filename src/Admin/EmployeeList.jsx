@@ -142,7 +142,7 @@ const EmployeeList = () => {
         <View style={styles.cardWrapper}>
           {CardDatas && CardDatas.length > 0 ? (
             CardDatas.map((item, index) => (
-              <Card variant='elevated' style={styles.card}>
+              <Card variant='elevated' style={styles.card} key={index}>
                 <View>
                   <VStack space='4xl'>
                     <HStack
@@ -188,6 +188,8 @@ const EmployeeList = () => {
                         <Menu
                           placement='bottom'
                           offset={2}
+                          disabledKeys={[item.isactive ? 'active' : 'inactive']}
+                          selectionMode='single'
                           trigger={({ ...triggerProps }) => {
                             return (
                               <TouchableOpacity {...triggerProps}>
@@ -202,8 +204,8 @@ const EmployeeList = () => {
                           style={{ borderRadius: 10 }}
                         >
                           <MenuItem
-                            key={1}
-                            textValue='Add account'
+                            key={'active'}
+                            textValue='active'
                             onPress={() =>
                               handlactiveChange(
                                 item.user_id,
@@ -224,8 +226,8 @@ const EmployeeList = () => {
                           <MenuSeparator />
 
                           <MenuItem
-                            key={2}
-                            textValue='Settings'
+                            key={'inactive'}
+                            textValue='inactive'
                             onPress={() =>
                               handlactiveChange(
                                 item.user_id,

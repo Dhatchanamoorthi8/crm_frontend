@@ -31,31 +31,17 @@ const DashBoardPage = () => {
 
   const focus = useIsFocused()
 
-  const fill = 20
-
   const [showModal, setShowModal] = useState(false)
 
   const nav = useNavigation()
-
-  const [TableData, SetTableData] = useState([])
-
-  const [TaskData, SetTaskData] = useState([])
 
   const [refreshing, setRefreshing] = useState(false)
 
   const [loader, setloader] = useState(false)
 
-  const [CardCount, SetCardCount] = useState({
-    newEnquiry: 0,
-    Followup: 0
-  })
-
-  const target = 10
-  const currentProgress = CardCount.newEnquiry
-
-  const fillPercentage = (Number(currentProgress) / Number(target)) * 100
-
   const [showAll, setShowAll] = useState(false)
+
+  const [isRefresh, setisRefresh] = useState(false)
 
   const fetchData = async () => {
     setloader(true)
@@ -99,11 +85,11 @@ const DashBoardPage = () => {
           <View flex={1}>
             <View mx='$3' my='$3'>
               <Text
-                fontFamily='MonaSans_400Regular'
+                fontFamily='NunitoSans_Regular'
                 textTransform='capitalize'
                 color='#7D8592'
               >
-                Welcome back, {userData.username}!
+                Welcome back, {userData.username} !
               </Text>
             </View>
 
@@ -129,7 +115,11 @@ const DashBoardPage = () => {
                   as={CalendarDaysIcon}
                   className='text-typography-500 m-2 w-4 h-4'
                 />
-                <Text fontFamily='MonaSans_400Regular' color='black'>
+                <Text
+                  style={{ fontSize: 16 }}
+                  fontFamily='NunitoSans_Regular'
+                  color='black'
+                >
                   {getFormattedDate()}
                 </Text>
               </View>
@@ -137,17 +127,11 @@ const DashBoardPage = () => {
 
             {/* Followup Cards Section */}
             <View>
-              <DashBoardCards
-                TableData={TableData}
-                fillPercentage={fillPercentage}
-                CardCount={CardCount}
-                TaskData={TaskData}
-              />
+              <DashBoardCards user_id={user_id} isRefresh={isRefresh} />
 
               <Center>
                 <Spinner size='large' visible={loader} />
               </Center>
-              
             </View>
           </View>
         ) : (
@@ -201,7 +185,10 @@ const DashBoardPage = () => {
             }}
           >
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-              <TaskForm setShowModal={setShowModal} />
+              <TaskForm
+                setShowModal={setShowModal}
+                setisRefresh={setisRefresh}
+              />
             </ScrollView>
           </ModalBody>
         </ModalContent>

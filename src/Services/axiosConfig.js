@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { logout } from '../Slices/userSlice' // Import the logout action
+import { logout } from '../../Slices/userSlice' // Import the logout action
 import config from '../config'
 import { store } from '../../Store/store' // Adjust the relative path as necessary
 
@@ -21,16 +21,14 @@ api.interceptors.request.use(
   config => {
     const { token, user_id } = getAuthData() // Get token and userId
 
-    console.log(user_id,'user_id');
-    
+
+
 
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
 
-    // Log the current config data and user_id to debug
-    console.log('Before adding user_id:', config.data)
-    console.log('user_id:', user_id)
+
 
     // Attach userId to the request body if userId exists and it's a POST, PUT, or PATCH request
     if (
@@ -45,8 +43,7 @@ api.interceptors.request.use(
       config.data.user_id = user_id // Attach userId to the request body
     }
 
-    // Log the updated config data
-    console.log('After adding user_id:', config.data)
+
 
     return config
   },

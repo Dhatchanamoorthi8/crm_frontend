@@ -45,7 +45,7 @@ import { Keyboard } from 'react-native'
 import { ScrollView } from '@gluestack-ui/themed'
 import { MenuItem } from '@gluestack-ui/themed'
 
-import { useNavigation } from '@react-navigation/native'
+import { useIsFocused, useNavigation } from '@react-navigation/native'
 import {
   Select,
   SelectTrigger,
@@ -69,10 +69,12 @@ import { Center } from '@gluestack-ui/themed'
 import { base64men, base64women } from '@/assets/Icons/AvatarSvg'
 import MenAvatar from '@/assets/Icons/menIcon/MenAvatar'
 import GirlAvatar from '@/assets/Icons/girlsIcon/GirlAvatar'
-
+import { preloadAvatarMen, preloadAvatarWomen } from '../Hooks/usePreloadAvatar'
+import * as FileSystem from 'expo-file-system'
 const { width } = Dimensions.get('window')
 
 const EmployeeTab = () => {
+  const focus = useIsFocused()
   const navigation = useNavigation()
 
   const [activeTab, setActiveTab] = useState(0)
@@ -105,7 +107,9 @@ const EmployeeTab = () => {
     profile: ''
   })
 
-  console.log(EmployeerRegisterData)
+  const [preloadedAvatarmen, setpreloadedAvatarmen] = useState([])
+
+  const [preloadedAvatarwomen, setpreloadedAvatarwomen] = useState([])
 
   const handleTabSwitch = (index, type) => {
     if (type !== 'settings') {
@@ -123,42 +127,47 @@ const EmployeeTab = () => {
 
   const handleChangeInput = async (name, value) => {
     const processedValue = typeof value === 'string' ? value.trim() : value
+
     try {
+      // Update the form state for the given field
       SetEmployeerRegisterData(current => ({
         ...current,
         [name]: processedValue
       }))
 
+      // Handle gender-specific logic
       if (name === 'gender') {
+        const gender = processedValue // Use the new value directly
         const randomAvatar =
-          EmployeerRegisterData.gender === 'male'
-            ? MenAvatar[Math.floor(Math.random() * MenAvatar.length)]
-            : GirlAvatar[Math.floor(Math.random() * GirlAvatar.length)]
+          gender === 'male'
+            ? preloadedAvatarmen[
+                Math.floor(Math.random() * preloadedAvatarmen.length)
+              ]
+            : preloadedAvatarwomen[
+                Math.floor(Math.random() * preloadedAvatarwomen.length)
+              ]
 
+        // Clear the profile temporarily
+        SetEmployeerRegisterData(current => ({
+          ...current,
+          profile: ''
+        }))
 
-        const response = await fetch(
-          Image.resolveAssetSource(randomAvatar.source).uri
-        )
-        const blob = await response.blob()
-        const reader = new FileReader()
+        // Convert the selected avatar to a Base64 string
+        const base64String = await FileSystem.readAsStringAsync(randomAvatar, {
+          encoding: FileSystem.EncodingType.Base64
+        })
 
-        reader.onloadend = () => {
-          const base64String = reader.result.split(',')[1]
+        // Update the profile field with the Base64 string
+        SetEmployeerRegisterData(current => ({
+          ...current,
+          profile: base64String
+        }))
 
-          SetEmployeerRegisterData(current => ({
-            ...current,
-            profile: base64String
-          }))
-
-          //console.log('Base64 String:', base64String)
-        }
-
-        reader.readAsDataURL(blob)
+        return
       }
-
-  
     } catch (error) {
-      console.log(error)
+      console.log('Error in handleChangeInput:', error)
     }
   }
 
@@ -174,8 +183,19 @@ const EmployeeTab = () => {
   }
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (focus) {
+      fetchData()
+
+      const loadAvatars = async () => {
+        const menuri = await preloadAvatarMen()
+        const womenuri = await preloadAvatarWomen()
+        setpreloadedAvatarmen(menuri)
+        setpreloadedAvatarwomen(womenuri)
+      }
+
+      loadAvatars()
+    }
+  }, [focus])
 
   const [errors, setErrors] = useState({
     name: '',
@@ -191,8 +211,6 @@ const EmployeeTab = () => {
   const validate = () => {
     let isValid = true
     const newErrors = {}
-
-    console.log('Validation started')
 
     if (EmployeerRegisterData.name === '') {
       newErrors.name = 'Name is required'
@@ -219,7 +237,6 @@ const EmployeeTab = () => {
       !EmployeerRegisterData.mobile.trim() ||
       !/^\d{10}$/.test(EmployeerRegisterData.mobile.trim())
     ) {
-      console.log('Validation failed: contact is invalid')
       newErrors.mobile = 'Valid Contact Number is required (10 digits)'
       isValid = false
     }
@@ -230,7 +247,6 @@ const EmployeeTab = () => {
       !EmployeerRegisterData.email.trim() ||
       !/\S+@\S+\.\S+/.test(EmployeerRegisterData.email.trim())
     ) {
-      console.log('Validation failed: email is invalid')
       newErrors.email = 'Valid Email is required'
       isValid = false
     }
@@ -259,11 +275,11 @@ const EmployeeTab = () => {
   const handleSave = async () => {
     if (validate()) {
       try {
-        const payload = {
-          ...EmployeerRegisterData,
-          profile:
-            EmployeerRegisterData.gender === 'male' ? base64men : base64women
-        }
+        // const payload = {
+        //   ...EmployeerRegisterData,
+        //   profile:
+        //     EmployeerRegisterData.gender === 'male' ? base64men : base64women
+        // }
         const response = await api.post('users', EmployeerRegisterData)
         if (response.status === 201) {
           setShowModal(false)
@@ -275,7 +291,6 @@ const EmployeeTab = () => {
           })
         }
       } catch (error) {
-        console.log(error.response.data.message)
         setShowModal(false)
         setAlertProps({
           alertType: 'Error',
@@ -325,29 +340,24 @@ const EmployeeTab = () => {
   }, [])
 
   const toggleProfileimg = async () => {
-    const randomAvatar =
-      EmployeerRegisterData.gender === 'male'
-        ? MenAvatar[Math.floor(Math.random() * MenAvatar.length)]
-        : GirlAvatar[Math.floor(Math.random() * GirlAvatar.length)]
-
     try {
-      const response = await fetch(
-        Image.resolveAssetSource(randomAvatar.source).uri
-      )
-      const blob = await response.blob()
-      const reader = new FileReader()
+      const randomAvatar =
+        EmployeerRegisterData.gender === 'male'
+          ? preloadedAvatarmen[
+              Math.floor(Math.random() * preloadedAvatarmen.length)
+            ]
+          : preloadedAvatarwomen[
+              Math.floor(Math.random() * preloadedAvatarwomen.length)
+            ]
 
-      reader.onloadend = () => {
-        const base64String = reader.result.split(',')[1]
+      const base64String = await FileSystem.readAsStringAsync(randomAvatar, {
+        encoding: FileSystem.EncodingType.Base64
+      })
 
-        SetEmployeerRegisterData(current => ({
-          ...current,
-          profile: base64String
-        }))
-      }
-
-      reader.readAsDataURL(blob)
-      return
+      SetEmployeerRegisterData(current => ({
+        ...current,
+        profile: base64String
+      }))
     } catch (error) {
       console.log(error)
     }
@@ -413,8 +423,8 @@ const EmployeeTab = () => {
         style={{ borderRadius: 10 }}
       >
         <MenuItem
-          key={1}
-          textValue='Add account'
+          key={'Add employee'}
+          textValue='Add employee'
           onPress={() => setShowModal(true)}
         >
           <Icon as={AddIcon} size='sm' mr={'$2'} />
@@ -424,7 +434,7 @@ const EmployeeTab = () => {
         <MenuSeparator />
 
         <MenuItem
-          key={2}
+          key={'Settings'}
           textValue='Settings'
           onPress={() => navigation.navigate('adminSettings')}
         >

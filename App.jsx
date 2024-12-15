@@ -56,7 +56,9 @@ export default function App () {
     MonaSans_400Regular: require('./assets/Fonts/MonaSans-Regular.ttf'),
     MonaSans_Bold: require('./assets/Fonts/MonaSans-Bold.ttf'),
     MonaSans_Black: require('./assets/Fonts/MonaSans-Regular.ttf'),
-    MonaSans_SemiBold: require('./assets/Fonts/MonaSans-SemiBold.ttf')
+    MonaSans_SemiBold: require('./assets/Fonts/MonaSans-SemiBold.ttf'),
+    NunitoSans_Regular: require('./assets/Fonts/NunitoSans/NunitoSans_10pt-Regular.ttf'),
+    NunitoSans_Bold: require('./assets/Fonts/NunitoSans/NunitoSans_10pt-Bold.ttf')
   })
 
   useEffect(() => {
@@ -129,9 +131,9 @@ function MainNavigator () {
   const config = {
     animation: 'timing',
     config: {
-      stiffness: 1000,
-      damping: 500,
-      mass: 3,
+      stiffness: 500,
+      damping: 100,
+      mass: 2,
       overshootClamping: true,
       restDisplacementThreshold: 0.01,
       restSpeedThreshold: 0.01
@@ -162,7 +164,7 @@ function MainNavigator () {
       <Stack.Navigator
         screenOptions={{
           cardStyle: {
-            backgroundColor: '#F4F9FD'
+            backgroundColor: '#fff'
           }
         }}
       >

@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Keyboard, KeyboardAvoidingView } from 'react-native'
+import {
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  TouchableOpacity
+} from 'react-native'
 import {
   AlertCircleIcon,
   Avatar,
@@ -10,9 +15,11 @@ import {
   Card,
   FormControl,
   HStack,
+  Icon,
   Input,
   Pressable,
   ScrollView,
+  TrashIcon,
   View,
   VStack
 } from '@gluestack-ui/themed'
@@ -40,9 +47,13 @@ import { ColorCodes } from '../Components/ColorCodes'
 import { Divider } from '@gluestack-ui/themed'
 import { Heading } from '@gluestack-ui/themed'
 import { InputField } from '@gluestack-ui/themed'
+import { AttachPinSvg } from '@/assets/Icons/SvgIcons'
 
 const FollowupEnquiry = ({ route, navigation }) => {
+
+
   const { Props } = route.params
+ 
 
   const focus = useIsFocused()
 
@@ -61,7 +72,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
   const fetchData = async () => {
     try {
       const response = await api.get(`client-vist/FollowpGetOne/${Props.id}`)
-      console.log(response.data.followUp[0])
+
       SetClientData(response.data.followUp[0])
     } catch (error) {
       console.log(error)
@@ -111,7 +122,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
   const [refreshing, setRefreshing] = useState(false)
 
   const handleChangeInput = (name, value) => {
-    console.log(name, value)
+ 
 
     SetFollowupData(preData => ({ ...preData, [name]: value }))
 
@@ -133,7 +144,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
       latitude: location.latitude,
       longitude: location.longitude
     }))
-    console.log(location)
+
   }
 
   const handleDatepicker = async Date => {
@@ -189,7 +200,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
 
   const handleVisitMode = d => {
     SetFollowupData(prevData => ({ ...prevData, TeleCallMode: d }))
-    console.log(d)
+
   }
 
   const validation = () => {
@@ -199,7 +210,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
       FollowupData.visit_type === 'TeleCall' &&
       FollowupData.TeleCallMode === ''
     ) {
-      console.log('Please Select TeleCall Mode')
+   
       newErrors.TeleCallMode = 'Please Select TeleCall Any one Mode'
 
       isValid = false
@@ -210,27 +221,26 @@ const FollowupEnquiry = ({ route, navigation }) => {
       FollowupData.TeleCallMode === 'Call' &&
       FollowupData.CallStatus === ''
     ) {
-      console.log('Please Select Call Status')
+    
       newErrors.CallStatus = 'Please Select TeleCall Status'
 
       isValid = false
     }
 
     if (FollowupData.visit_type === 'LiveVisit' && FollowupData.images === '') {
-      console.log('Visited Images is required')
+ 
       newErrors.images = 'Visited Images is required'
       isValid = false
     }
 
     if (FollowupData.Followup_type === '') {
-      console.log('FollowUp Type is required')
+     
       newErrors.Followup_type = 'FollowUp Type is required'
 
       isValid = false
     }
 
     if (FollowupData.Remarks === '') {
-      console.log('Remarks is required')
       newErrors.Remarks = 'Remarks is required'
       isValid = false
     }
@@ -251,11 +261,10 @@ const FollowupEnquiry = ({ route, navigation }) => {
       try {
         const allData = { FollowupData, ClientData }
 
-        console.log(allData)
+
 
         const response = await api.post('/client-vist/FollowUpSave', allData)
 
-        console.log(response.data, response.status, response.statusText)
 
         if (response.status === 201) {
           resetInputs()
@@ -280,6 +289,18 @@ const FollowupEnquiry = ({ route, navigation }) => {
     }))
   }
 
+  const [uploadfileDatas, setuploadfileDatas] = useState({
+    filename: '',
+    size: ''
+  })
+  const uploadFileData = (filename, size) => {
+    setuploadfileDatas(current => ({
+      ...current,
+      filename: filename,
+      size: size
+    }))
+  }
+
   useEffect(() => {
     fetchData()
   }, [focus])
@@ -292,6 +313,9 @@ const FollowupEnquiry = ({ route, navigation }) => {
       }
       style={{ backgroundColor: '#F4F9FD' }}
     >
+
+
+
       <View style={styles.cardWrapper}>
         <Card
           style={{ backgroundColor: '#FFFFFF', borderRadius: 20 }}
@@ -367,7 +391,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
           backgroundColor: '#FFFFFF'
         }}
         variant='elevated'
-        rounded={'$2xl'}
+        style={{ borderRadius: 24 }}
         h={'auto'}
         mx={'$2'}
         mb={'$12'}
@@ -379,13 +403,8 @@ const FollowupEnquiry = ({ route, navigation }) => {
           style={{ width: '100%', padding: '0%' }}
         >
           <View style={{ width: '100%' }}>
-            <Text
-              mb={'$1'}
-              fontFamily='MonaSans_Bold'
-              color='#7D8592'
-              style={{ fontSize: 14 }}
-            >
-              Visit Type <Text color='$red700'>*</Text>
+            <Text mb={'$2'} fontFamily='NunitoSans_Bold' color='#7D8592'>
+              Visit Type
             </Text>
             <Selects
               selectype={'Visittype'}
@@ -449,71 +468,6 @@ const FollowupEnquiry = ({ route, navigation }) => {
                   )}
                 </>
               )}
-
-            {FollowupData.visit_type === 'LiveVisit' &&
-              FollowupData.visit_type !== 'TeleCall' && (
-                <>
-                  <Box
-                    alignItems='center'
-                    mt={FollowupData.images !== '' ? '$4' : '$6'}
-                  >
-                    <VStack>
-                      {FollowupData.images !== '' && (
-                        <>
-                          <Badge
-                            bg='$red600'
-                            style={{
-                              zIndex: 10
-                            }}
-                            h={'$6'}
-                            w={'$6'}
-                            mb={'-$3.5'}
-                            mr={'-$1.5'}
-                            rounded={'$full'}
-                            zIndex={10}
-                            alignSelf='flex-end'
-                            variant='solid'
-                          >
-                            <BadgeText color='white'>1</BadgeText>
-                          </Badge>
-                        </>
-                      )}
-                      <Button gap={'$1'} onPress={() => setUploadedOpen(true)}>
-                        <Ionicons
-                          name='attach-outline'
-                          size={24}
-                          color='black'
-                        />
-                        <ButtonText
-                          color='black'
-                          fontFamily='MonaSans_400Regular'
-                        >
-                          Attach File
-                          <Text color='$red700' fontSize={'$xl'}>
-                            *
-                          </Text>
-                        </ButtonText>
-                      </Button>
-
-                      {errors.images && (
-                        <HStack flexDirection='row' gap={'$1'}>
-                          <FormControlErrorIcon
-                            as={AlertCircleIcon}
-                            mt={'$1'}
-                            size='xs'
-                          />
-                          <FormControlErrorText
-                            fontSize={'$sm'}
-                            fontFamily='MonaSans_400Regular'
-                          >
-                            {errors.images}
-                          </FormControlErrorText>
-                        </HStack>
-                      )}
-                    </VStack>
-                  </Box>
-                </>
-              )}
           </View>
         </VStack>
 
@@ -524,17 +478,17 @@ const FollowupEnquiry = ({ route, navigation }) => {
                 flexDirection='row'
                 justifyContent='space-evenly'
                 gap={'$2'}
+                flexWrap='wrap'
                 style={{ width: '100%', padding: '0%' }}
               >
-                <View style={{ width: '50%' }}>
+                <View style={{ width: '100%' }}>
                   <Text
-                    mb={'$1'}
-                    fontFamily='MonaSans_Bold'
+                    mb={'$2'}
+                    fontFamily='NunitoSans_Bold'
                     color='#7D8592'
                     style={{ fontSize: 14 }}
                   >
                     FollowUp Type
-                    <Text color='$red700'>*</Text>
                   </Text>
                   <Selects
                     selectype={'FollowupType'}
@@ -561,44 +515,58 @@ const FollowupEnquiry = ({ route, navigation }) => {
                   )}
                 </View>
 
-                <View style={{ width: '48%' }} mt={'$1'}>
-                  <Text
-                    mb={'$1'}
-                    fontFamily='MonaSans_Bold'
-                    color='#7D8592'
-                    style={{ fontSize: 14 }}
-                  >
-                    Follow Up date
-                  </Text>
+                {FollowupData.Followup_type === 'Followup' && (
+                  <View style={{ width: '100%' }} mt={'$1'}>
+                    <Text
+                      mb={'$1'}
+                      fontFamily='NunitoSans_Bold'
+                      color='#7D8592'
+                      style={{ fontSize: 14 }}
+                    >
+                      Follow Up date
+                    </Text>
 
-                  <Input rounded={'$xl'}>
-                    <InputField
-                      type='text'
-                      value={FollowupData.followup_Date}
-                      fontFamily='MonaSans_400Regular'
-                      style={{ fontSize: 15 }}
-                      onPressIn={() => setDatePickerOpen(true)}
-                      onFocus={() => {
-                        Keyboard.dismiss()
-                        setDatePickerOpen(true)
-                      }}
-                    />
-                  </Input>
+                    <Input rounded={'$xl'}>
+                      <InputField
+                        type='text'
+                        value={FollowupData.followup_Date}
+                        fontFamily='MonaSans_400Regular'
+                        style={{ fontSize: 15 }}
+                        onPressIn={() => setDatePickerOpen(true)}
+                        onFocus={() => {
+                          Keyboard.dismiss()
+                          setDatePickerOpen(true)
+                        }}
+                      />
+                    </Input>
 
-                  {/* <Selects
+                    {/* <Selects
                     selectype={'Services'}
                     refreshData={refreshData}
                     onChangeText={value => handleChangeInput('Services', value)}
                   /> */}
-                </View>
+                  </View>
+                )}
               </VStack>
             </View>
 
             <VStack>
               <View>
-                <Textarea size='md' borderColor='$black'>
+                <Text
+                  fontFamily='NunitoSans_Bold'
+                  style={{ color: '#7D8592', fontSize: 16 }}
+                  mb='$2'
+                >
+                  Description
+                </Text>
+                <Textarea
+                  size='md'
+                  borderColor='#7D8592'
+                  style={{ borderRadius: 14 }}
+                >
                   <TextareaInput
-                    placeholder='Enter Remarks.'
+                    placeholder='Add some description of the request'
+                    fontFamily='MonaSans_400Regular'
                     value={FollowupData.Remarks}
                     defaultValue={FollowupData.Remarks}
                     onChangeText={text =>
@@ -626,6 +594,103 @@ const FollowupEnquiry = ({ route, navigation }) => {
                   </HStack>
                 )}
               </View>
+
+              {FollowupData.visit_type === 'LiveVisit' &&
+                FollowupData.visit_type !== 'TeleCall' && (
+                  <>
+                    <TouchableOpacity onPress={() => setUploadedOpen(true)}>
+                      <Box
+                        bg='#DCEEFC'
+                        alignItems='center'
+                        justifyContent='center'
+                        my='$5'
+                        style={{ borderRadius: 14, height: 54 }}
+                      >
+                        <View display='flex' flexDirection='row' gap='$3'>
+                          <AttachPinSvg />
+                          <Text
+                            color={'#0A1629'}
+                            fontFamily='NunitoSans_Regular'
+                          >
+                            Attached files For Client Visit
+                          </Text>
+                        </View>
+                      </Box>
+                    </TouchableOpacity>
+
+                    {FollowupData.images !== '' && (
+                      <>
+                        <Box
+                          bg='#FFFFFF'
+                          style={{
+                            borderRadius: 14,
+                            height: 70,
+                            borderWidth: 1,
+                            borderColor: '#D8DDE5'
+                          }}
+                        >
+                          <HStack my='$3' mx='$2'>
+                            <View display='flex' flexDirection='row'>
+                              <Image
+                                source={{
+                                  uri: `data:image/jpeg;base64,${FollowupData.images}`
+                                }}
+                                style={{
+                                  height: 44,
+                                  width: 44,
+                                  borderRadius: 14
+                                }}
+                              />
+                              <VStack
+                                mx='$4'
+                                w={
+                                  uploadfileDatas.filename.length > 40
+                                    ? '$56'
+                                    : 'auto'
+                                }
+                              >
+                                <Text
+                                  fontFamily='NunitoSans_Bold'
+                                  style={{ fontSize: 12 }}
+                                >
+                                  {uploadfileDatas.filename}
+                                </Text>
+                                <Text
+                                  fontFamily='NunitoSans_Regular'
+                                  style={{ fontSize: 12 }}
+                                >
+                                  {uploadfileDatas.size}
+                                </Text>
+                              </VStack>
+                            </View>
+
+                            <View>
+                              <TouchableOpacity onPress={handleUploadRest}>
+                                <Icon as={TrashIcon} size='md' color='red' />
+                              </TouchableOpacity>
+                            </View>
+                          </HStack>
+                        </Box>
+                      </>
+                    )}
+
+                    {errors.images && (
+                      <HStack flexDirection='row' gap={'$1'}>
+                        <FormControlErrorIcon
+                          as={AlertCircleIcon}
+                          mt={'$1'}
+                          size='xs'
+                        />
+                        <FormControlErrorText
+                          fontSize={'$sm'}
+                          fontFamily='MonaSans_400Regular'
+                        >
+                          {errors.images}
+                        </FormControlErrorText>
+                      </HStack>
+                    )}
+                  </>
+                )}
 
               <View my={'$5'}>
                 <Pressable>
@@ -677,6 +742,7 @@ const FollowupEnquiry = ({ route, navigation }) => {
           onClose={() => setUploadedOpen(false)}
           images={handleImageUpload}
           ClearImage={handleUploadRest}
+          fileData={(filename, size) => uploadFileData(filename, size)}
         />
       </View>
 
@@ -695,6 +761,8 @@ const FollowupEnquiry = ({ route, navigation }) => {
           )}
         </Center>
       </View>
+
+
     </ScrollView>
   )
 }

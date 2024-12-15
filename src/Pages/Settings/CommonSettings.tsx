@@ -12,21 +12,26 @@ import { Entypo } from '@expo/vector-icons'
 import { Heading } from '@gluestack-ui/themed'
 import { Divider } from '@gluestack-ui/themed'
 import { Icon, HelpCircleIcon, ChevronRightIcon, SettingsIcon, AlertCircleIcon } from '@gluestack-ui/themed'
-
-import api from '@/src/Services/axiosConfig'
 import { ColorCodes } from '@/src/Components/ColorCodes'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native'
 import { RefreshControl } from 'react-native-gesture-handler'
+import { useSelector } from 'react-redux'
 
 const CommonSettings = () => {
 
     const navigation = useNavigation()
 
+    const focus = useIsFocused();
+
     const state = store.getState()
 
-    const userid = state.user.userData.user.userid
+    const [userid, setuserid] = useState(state.user.userData.user.userid)
 
-    const userData = state.user.userData.user
+    const [userData, setuserData] = useState(state.user.userData.user)
+
+
+
+
 
     const [refreshing, setRefreshing] = useState(false)
 
@@ -44,6 +49,25 @@ const CommonSettings = () => {
     }, [])
 
 
+    const fetchUserData = () => {
+        try {
+            const userData = state.user.userData.user
+            setuserData(userData)
+
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+
+    useEffect(() => {
+        if (focus == true) {
+            fetchUserData();
+        }
+    }, [focus]);
+
+
 
 
     return (
@@ -56,10 +80,10 @@ const CommonSettings = () => {
                         <HStack space="md">
 
                             <Avatar
-                                className='bg-indigo-600'
+
                                 bg={ColorCodes(userData.username)}
                             >
-                                <AvatarFallbackText className='text-white'>
+                                <AvatarFallbackText >
                                     {userData.username}
                                 </AvatarFallbackText>
 
@@ -72,7 +96,7 @@ const CommonSettings = () => {
                                 )}
                             </Avatar>
 
-                            <VStack marginStart={"$5"}>
+                            <VStack marginStart={'$5'}>
                                 <Heading size="sm" >{userData.username}</Heading>
                                 <Text size="sm" >{userData.designation}</Text>
                             </VStack>

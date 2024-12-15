@@ -93,14 +93,19 @@ const AttendaceHistory = () => {
               >
                 <Text fontFamily='MonaSans_Bold'>{item.attendance_date}</Text>
               </View>
+
               <View
                 display='flex'
                 flexDirection='row'
                 justifyContent='space-between'
-                mt={'$4'}
+                mt='$4'
+                borderRightWidth={2}
+                bg='#F4F9FD'
+                borderCurve='continuous'
+                className='p-6 rounded-lg'
               >
-                <View>
-                  <Text style={styles.text} color='#FFC800'>
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={styles.text} className='mb-4'>
                     Intime
                   </Text>
                   <Text
@@ -111,8 +116,19 @@ const AttendaceHistory = () => {
                     {item.intime}
                   </Text>
                 </View>
-                <View>
-                  <Text style={styles.text} color='#FFC800'>
+
+                {/* Divider */}
+                <View
+                  style={{
+                    width: 1,
+                    backgroundColor: '#E4E6E8',
+                    marginHorizontal: 10,
+                    height: '120%'
+                  }}
+                />
+
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={styles.text} className='mb-4'>
                     Outime
                   </Text>
                   <Text
@@ -123,8 +139,21 @@ const AttendaceHistory = () => {
                     {item.outime ? item.outime : 'null'}
                   </Text>
                 </View>
-                <View>
-                  <Text style={styles.text}>Total Hours</Text>
+
+                {/* Divider */}
+                <View
+                  style={{
+                    width: 1,
+                    backgroundColor: '#E4E6E8',
+                    marginHorizontal: 10,
+                    height: '120%'
+                  }}
+                />
+
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={styles.text} className='mb-4'>
+                    Total Hours
+                  </Text>
                   <Text
                     style={{ fontSize: 16 }}
                     fontFamily='MonaSans_400Regular'
@@ -134,6 +163,7 @@ const AttendaceHistory = () => {
                   </Text>
                 </View>
               </View>
+
               <View
                 display='flex'
                 flexDirection='row'
@@ -180,7 +210,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10
   },
   card: {
-    backgroundColor: '#000', // White background for card
+    backgroundColor: '#FFFF', // White background for card
     borderRadius: 13, // Rounded corners
     shadowColor: '#000', // Black shadow color
     shadowOffset: { width: 0, height: 4 }, // Shadow offset
@@ -191,7 +221,8 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontFamily: 'MonaSans_400Regular'
+    fontFamily: 'MonaSans_400Regular',
+    color: 'black'
   }
 })
 

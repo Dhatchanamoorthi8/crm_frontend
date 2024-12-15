@@ -73,7 +73,8 @@ const styles = StyleSheet.create({
     shadowColor: 'black',
     shadowOffset: { width: 0, height: 10 },
     shadowRadius: 10,
-    shadowOpacity: 0.1
+    shadowOpacity: 0.1,
+    fontFamily: 'NunitoSans_Bold'
   }
 })
 

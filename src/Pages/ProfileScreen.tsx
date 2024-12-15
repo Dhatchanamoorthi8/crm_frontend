@@ -5,17 +5,12 @@ import { VStack } from '@gluestack-ui/themed'
 import { Avatar } from '@gluestack-ui/themed'
 import { ColorCodes } from '../Components/ColorCodes'
 import { AvatarFallbackText } from '@gluestack-ui/themed'
-import { Keyboard, StyleSheet, TouchableOpacity } from 'react-native'
+import { Alert, Keyboard, StyleSheet, TouchableOpacity } from 'react-native'
 import api from '../Services/axiosConfig'
-import { store } from '../../Store/store'
 import Feather from '@expo/vector-icons/Feather';
 import { AvatarBadge } from '@gluestack-ui/themed'
-import { Entypo } from '@expo/vector-icons'
 import { Heading } from '@gluestack-ui/themed'
 import { Divider } from '@gluestack-ui/themed'
-import { Icon, HelpCircleIcon, ChevronRightIcon, SettingsIcon, AlertCircleIcon } from '@gluestack-ui/themed'
-
-import * as Application from 'expo-application';
 import FileUpload from '../Components/FileUpload'
 import { DatePickerSvg, EditSvg, LocationSvg } from '@/assets/Icons/SvgIcons'
 import {
@@ -32,7 +27,7 @@ import { FormControl } from '@gluestack-ui/themed'
 import { Input } from '@gluestack-ui/themed'
 import { InputField } from '@gluestack-ui/themed'
 import { InputSlot } from '@gluestack-ui/themed'
-import { ButtonText } from '@gluestack-ui/themed'
+import { ButtonText, } from '@gluestack-ui/themed'
 import {
     Select,
     SelectTrigger,
@@ -47,13 +42,43 @@ import {
 } from "@gluestack-ui/themed"
 import { ChevronDownIcon } from '@gluestack-ui/themed'
 import DatePicker from '../Components/DatePicker'
+import { updateUserData } from '../../Slices/userSlice';
+import { useDispatch, useSelector } from 'react-redux'
+
+import { useIsFocused } from '@react-navigation/native'
+import debounce from 'lodash.debounce';
+
+
+import {
+    Actionsheet,
+    ActionsheetBackdrop,
+    ActionsheetContent,
+    ActionsheetDragIndicator,
+    ActionsheetDragIndicatorWrapper,
+    ActionsheetItem,
+    ActionsheetItemText,
+    ActionsheetIcon,
+} from '@gluestack-ui/themed';
+import { Image } from '@gluestack-ui/themed'
+import Avatar3D from '../Components/Avatar3D'
+import { Center } from '@gluestack-ui/themed'
+import Spinner from 'react-native-loading-spinner-overlay'
+
+
+
+const uploadImg = require("@/assets/Icons/TaskIcons/12.png")
+const avatarImg = require("@/assets/Icons/41.png")
+
 const ProfileScreen = () => {
 
-    console.log(Application.nativeApplicationVersion, 'version');
+    const dispatch = useDispatch();
 
-    const state = store.getState()
+    const focus = useIsFocused();
 
-    const userid = state.user.userData.user.userid
+    const globalData = useSelector((state) => state?.user.userData);
+
+    const userid = useSelector((state) => state.user.userData?.user.userid);
+
 
     const [uploadedOpen, setUploadedOpen] = useState(false)
 
@@ -61,6 +86,12 @@ const ProfileScreen = () => {
 
     const [DatePickerOpen, setDatePickerOpen] = useState(false)
 
+    const [isprofileDrawer, setisprofileDrawer] = useState(false)
+
+    const [isloader, setisloader] = useState(false)
+
+
+    const [isAvatar3D, setisAvatar3D] = useState(false)
 
     const [userData, setUserData] = useState({
         user_id: null,
@@ -79,20 +110,21 @@ const ProfileScreen = () => {
     const [errorMsg, seterrorMsg] = useState(false)
 
     const fetchUserData = async () => {
+        setisloader(true)
         try {
             const response = await api.get(`users/${userid}`)
-
-
 
             if (response.status === 200) {
                 const { user_id, name, email, gender, DOB, dateofbirth, profile,
                     age, mobile, designationName, companyName } = response.data[0]
                 setUserData(current => ({
-                    ...current, user_id: user_id,
-                    name: name, email: email, gender: gender, DOB: DOB, dateofbirth: dateofbirth, profile: profile,
-                    age: age, mobile: mobile, designationName: designationName, companyName: companyName
+                    ...current,
+                    user_id,
+                    name, email, gender, DOB, dateofbirth, profile,
+                    age, mobile, designationName, companyName
                 }))
 
+                setisloader(false)
                 seterrorMsg(false)
                 return
             }
@@ -101,42 +133,117 @@ const ProfileScreen = () => {
 
         } catch (error) {
             console.log(error);
+            setisloader(false)
         }
     }
-
-
-
 
 
     const handleCloseUpload = () => {
         setUploadedOpen(false)
     }
 
-    const handleImageUpload = async image => {
+    const handleImageUpload = async (image: string) => {
+        setisloader(true);
+        try {
+            const response = await api.post(`users/UpdateUserprofile/${userData.user_id}?mood=profileimg`, { image });
 
-        console.log(image);
+            if (response.status === 201) {
+                const updatedProfileData = {
+                    ...globalData,
+                    user: {
+                        ...globalData.user,
+                        profile: image || globalData.user.profile,
+                    },
+                };
 
-    }
+                setUserData(prevData => ({
+                    ...prevData,
+                    profile: image,
+                }));
+
+                dispatch(updateUserData(updatedProfileData));
+                await fetchUserData(); 
+                Alert.alert('Success', 'Your profile image has been updated successfully.');
+            } else {
+                console.error('Unexpected response:', response);
+                Alert.alert('Error', 'Failed to update profile image.');
+            }
+        } catch (error) {
+            console.error('Error updating profile image:', error.response?.data || error.message);
+            Alert.alert('Error', 'Failed to update profile image. Please try again.');
+        } finally {
+            setisloader(false); // Ensure loader is always turned off
+        }
+    };
+
 
 
     const handleUploadRest = async image => {
-        console.log(image)
+        //console.log(image)
     }
 
     const handleDatepicker = (date) => {
-
-        console.log(date);
-
-
+        setUserData(prevData => ({
+            ...prevData,
+            DOB: date
+        }))
     }
 
 
+    const handleChangeInput = debounce((name, value) => {
+        const processedValue = typeof value === 'string' ? value.trim() : value;
+        setUserData(prevData => ({
+            ...prevData,
+            [name]: processedValue,
+        }));
+    }, 300);
+
+
+    const handleSave = async () => {
+        setisloader(true)
+        try {
+            const response = await api.post(`users/UpdateUserprofile/${userData.user_id}?mood=profileDetails`, userData)
+            if (response.status === 201) {
+                const updatedProfileData = {
+                    ...globalData,
+                    user: {
+                        ...globalData.user,
+                        username: userData.name || globalData.user.username,
+                        email: userData.email || globalData.user.email
+                    }
+                }
+                dispatch(updateUserData(updatedProfileData));
+                fetchUserData();
+                setisModelEdit(false)
+                setisloader(false)
+                Alert.alert('Success', 'Your profile Details has been updated successfully.');
+            }
+        } catch (error) {
+            setisloader(false)
+            console.log(error);
+
+        }
+    }
 
     useEffect(() => {
-        fetchUserData()
-    }, [])
+        if (focus) {
+            fetchUserData()
+        }
+
+    }, [focus])
 
 
+    const [uploadfileDatas, setuploadfileDatas] = useState({
+        filename: '',
+        size: ''
+    })
+    const uploadFileData = (filename, size) => {
+        setuploadfileDatas(current => ({
+            ...current,
+            filename: filename,
+            size: size
+        }))
+    }
 
 
     return (
@@ -149,28 +256,35 @@ const ProfileScreen = () => {
                             <Card style={{ backgroundColor: '#F4F9FD', borderRadius: 20 }}>
                                 <View>
                                     <HStack space='md' justifyContent='center'>
-                                        <Avatar
-                                            className='bg-indigo-600'
-                                            bg={ColorCodes(userData.name)}
-                                            size='2xl'
-                                        >
-                                            <AvatarFallbackText className='text-white'>
-                                                {userData.name}
-                                            </AvatarFallbackText>
 
-                                            {userData.profile && (
-                                                <AvatarImage source={{ uri: userData.profile }} />
-                                            )}
+                                        <TouchableOpacity onPress={() => setisprofileDrawer(true)}>
+                                            <Avatar
+                                                className='bg-indigo-600'
+                                                bg={ColorCodes(userData.name)}
+                                                size='2xl'
+                                            >
+                                                <AvatarFallbackText className='text-white'>
+                                                    {userData.name}
+                                                </AvatarFallbackText>
 
-
-                                            <AvatarBadge h="$10" w="$10" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
-                                                <TouchableOpacity onPress={() => setUploadedOpen(true)}>
-                                                    <Feather name="camera" size={20} color="white" />
-                                                </TouchableOpacity>
-                                            </AvatarBadge >
+                                                {userData.profile && (
+                                                    <AvatarImage source={{ uri: `data:image/png;base64,${userData.profile}` }} />
+                                                )
+                                                }
 
 
-                                        </Avatar>
+
+
+                                                <AvatarBadge h="$10" w="$10" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+                                                    <TouchableOpacity onPress={() => setisprofileDrawer(true)}>
+                                                        <Feather name="camera" size={20} color="white" />
+                                                    </TouchableOpacity>
+                                                </AvatarBadge >
+
+
+                                            </Avatar>
+                                        </TouchableOpacity >
+
                                     </HStack>
 
                                     <View marginStart={'auto'} marginEnd={'auto'} my={'$3'}>
@@ -211,10 +325,9 @@ const ProfileScreen = () => {
                                         >
                                             <HStack space='md'>
                                                 <Avatar
-                                                    className='bg-indigo-600'
                                                     bg={ColorCodes(userData.companyName)}
                                                 >
-                                                    <AvatarFallbackText className='text-white'>
+                                                    <AvatarFallbackText >
                                                         {userData.companyName}
                                                     </AvatarFallbackText>
 
@@ -335,7 +448,7 @@ const ProfileScreen = () => {
                                         </Text>
                                     </View>
 
-                                    <View>
+                                    <View w='$40'>
                                         <Text
                                             style={{ color: '#91929E', fontSize: 14 }}
                                             fontFamily='MonaSans_400Regular'
@@ -346,6 +459,8 @@ const ProfileScreen = () => {
                                         <Text
                                             style={{ color: '#0A1629', fontSize: 16 }}
                                             fontFamily='MonaSans_400Regular'
+                                            isTruncated={true}
+
                                         >
                                             {userData.email}
                                         </Text>
@@ -384,6 +499,14 @@ const ProfileScreen = () => {
                     onClose={handleCloseUpload}
                     images={handleImageUpload}
                     ClearImage={handleUploadRest}
+                    fileData={(filename, size) => uploadFileData(filename, size)}
+                />
+
+
+                <Avatar3D
+                    isOpen={isAvatar3D}
+                    onClose={() => setisAvatar3D(false)}
+                    images={handleImageUpload}
                 />
 
 
@@ -440,7 +563,8 @@ const ProfileScreen = () => {
                                                 placeholder='Position'
                                                 fontFamily='MonaSans_400Regular'
                                                 style={{ fontSize: 15 }}
-                                                value={userData.name}
+                                                defaultValue={userData.name}
+                                                onChangeText={value => handleChangeInput('name', value)}
                                             />
                                         </Input>
                                     </VStack>
@@ -454,18 +578,25 @@ const ProfileScreen = () => {
                                             Gender
                                         </Text>
                                         <Select
+                                            onValueChange={value => handleChangeInput('gender', value)}
                                             //onValueChange={e => handleChangeInput('gender', e)}
                                             //key={refreshing}
                                             defaultValue={userData.gender}
+
                                         >
                                             <SelectTrigger
                                                 variant='outline'
                                                 size='md'
                                                 rounded={'$xl'}
+
                                             >
                                                 <SelectInput
                                                     placeholder='Select Position'
                                                     fontFamily='MonaSans_400Regular'
+
+
+
+
                                                 />
                                                 <SelectIcon mr='$3' as={ChevronDownIcon} />
                                             </SelectTrigger>
@@ -556,7 +687,7 @@ const ProfileScreen = () => {
                                             Email
                                         </Text>
                                         <Input rounded={'$xl'}>
-                                            <InputField type='text' defaultValue={userData.email} />
+                                            <InputField type='text' defaultValue={userData.email} onChangeText={value => handleChangeInput('email', value)} />
                                         </Input>
                                     </VStack>
 
@@ -569,11 +700,11 @@ const ProfileScreen = () => {
                                             Mobile
                                         </Text>
                                         <Input rounded={'$xl'}>
-                                            <InputField type='text' defaultValue={userData.mobile} />
+                                            <InputField type='text' keyboardType='phone-pad' defaultValue={userData.mobile} onChangeText={value => handleChangeInput('mobile', value)} />
                                         </Input>
                                     </VStack>
 
-                                    <Button rounded={'$xl'}>
+                                    <Button rounded={'$xl'} onPress={handleSave}>
                                         <ButtonText fontFamily='MonaSans_SemiBold'>
                                             Save
                                         </ButtonText>
@@ -592,6 +723,36 @@ const ProfileScreen = () => {
                 value={userData.dateofbirth}
                 mode={'date'}
             />
+
+
+
+            <Actionsheet isOpen={isprofileDrawer} onClose={() => setisprofileDrawer(false)} snapPoints={[20]}>
+                <ActionsheetBackdrop />
+                <ActionsheetContent >
+                    <ActionsheetDragIndicatorWrapper>
+                        <ActionsheetDragIndicator />
+                    </ActionsheetDragIndicatorWrapper>
+
+                    <View flex={1} flexDirection='row' mt="$5" mb="$10" alignItems="flex-start" gap="$10">
+                        <View>
+                            <TouchableOpacity onPress={() => setUploadedOpen(true)}>
+                                <Image source={uploadImg} style={{ height: 70, width: 70 }} />
+                            </TouchableOpacity>
+                        </View>
+                        <View>
+                            <TouchableOpacity onPress={() => setisAvatar3D(true)}>
+                                <Image source={avatarImg} style={{ height: 70, width: 70 }} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+
+                </ActionsheetContent>
+            </Actionsheet>
+
+            <Center>
+                <Spinner visible={isloader} spinnerKey='Loading...' size="large" />
+            </Center>
         </>
     )
 }

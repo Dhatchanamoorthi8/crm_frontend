@@ -14,7 +14,7 @@ import {
 import { useIsFocused } from '@react-navigation/native'
 
 const Selects = ({ selectype, onChangeText, refreshData, color, page }) => {
-  console.log(selectype, onChangeText, refreshData, color, page)
+
 
   const focus = useIsFocused()
   const [selectedValue, setSelectedValue] = useState('')
@@ -78,7 +78,11 @@ const Selects = ({ selectype, onChangeText, refreshData, color, page }) => {
       case 'CallStatus':
         return (
           <>
-            <SelectItem label='Call Answer' value='CallAnswer' />
+            <SelectItem
+              label='Call Answer'
+              value='CallAnswer'
+              textStyle={{ color: 'red' }}
+            />
             <SelectItem label='Call Not Answer' value='CallNotAnswer' />
           </>
         )
@@ -92,7 +96,6 @@ const Selects = ({ selectype, onChangeText, refreshData, color, page }) => {
           />
         ))
 
-
       default:
         return <SelectItem label='No Options Available' value='' />
     }
@@ -100,7 +103,7 @@ const Selects = ({ selectype, onChangeText, refreshData, color, page }) => {
 
   useEffect(() => {
     fetchData()
-  }, [refreshData]) // Fetches data only when refreshData changes
+  }, [refreshData])
 
   return (
     <Select
@@ -108,7 +111,7 @@ const Selects = ({ selectype, onChangeText, refreshData, color, page }) => {
       onValueChange={handleSelectChange}
       key={refreshData}
     >
-      <SelectTrigger variant='outline' size='md' rounded={'$xl'}>
+      <SelectTrigger variant='outline' size='lg' style={{ borderRadius: 14 }}>
         <SelectInput
           placeholder='Select option'
           fontFamily='MonaSans_400Regular'

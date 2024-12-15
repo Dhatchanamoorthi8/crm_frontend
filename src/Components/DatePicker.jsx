@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Center } from '@gluestack-ui/themed'
 import Datetimepicker from '@react-native-community/datetimepicker'
-import { Platform } from 'react-native'
 
 const DatePicker = ({
   isOpen,
@@ -12,7 +11,7 @@ const DatePicker = ({
   mode
 }) => {
   const [currentMode, setCurrentMode] = useState('date')
-  const [tempDate, setTempDate] = useState(new Date()) 
+  const [tempDate, setTempDate] = useState(new Date()) // Temporary holder for date
   const [selectedDate, setSelectedDate] = useState(new Date())
 
   useEffect(() => {
@@ -22,20 +21,60 @@ const DatePicker = ({
   }, [value])
 
   const resetDate = () => {
-    setSelectedDate('')
+    setSelectedDate(null)
     clearDate()
   }
 
-  const onChangeDate = (event, selectedDate) => {
+  const formatDateToIST = (date, isDateOnly = false) => {
+    // Format the date in IST using Intl.DateTimeFormat
+    const options = isDateOnly
+      ? {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }
+      : {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }
+
+    const formatter = new Intl.DateTimeFormat('en-IN', options)
+    const parts = formatter.formatToParts(date)
+
+    if (isDateOnly) {
+      // Format date only: yyyy-MM-dd
+      return `${parts.find(p => p.type === 'year').value}-${
+        parts.find(p => p.type === 'month').value
+      }-${parts.find(p => p.type === 'day').value}`
+    }
+
+    // Format full datetime: yyyy-MM-dd HH:mm:ss
+    return `${parts.find(p => p.type === 'year').value}-${
+      parts.find(p => p.type === 'month').value
+    }-${parts.find(p => p.type === 'day').value} ${
+      parts.find(p => p.type === 'hour').value
+    }:${parts.find(p => p.type === 'minute').value}:${
+      parts.find(p => p.type === 'second').value
+    }`
+  }
+
+  const onChangeDate = (event, date) => {
     if (event.type === 'dismissed') {
       onClose(false) // Close picker if dismissed
       return
     }
 
-    if (selectedDate) {
+    if (date) {
       if (mode === 'datetime' && currentMode === 'date') {
         // Save selected date temporarily and show time picker
-        setTempDate(selectedDate)
+        setTempDate(date)
         setCurrentMode('time') // Switch to time picker
       } else {
         // Finalize selection for both 'date' and 'time' modes
@@ -45,19 +84,20 @@ const DatePicker = ({
                 tempDate.getFullYear(),
                 tempDate.getMonth(),
                 tempDate.getDate(),
-                selectedDate.getHours(),
-                selectedDate.getMinutes()
+                date.getHours(),
+                date.getMinutes()
               )
-            : selectedDate
+            : date
 
+        // Format date based on mode (datetime or date only)
         const formattedDate =
-          mode === 'datetime'
-            ? finalDate.toISOString() // Full datetime in ISO format
-            : finalDate.toISOString().split('T')[0] // Only date in yyyy-mm-dd format
+          mode === 'date'
+            ? formatDateToIST(finalDate, true) // Only date in yyyy-MM-dd
+            : formatDateToIST(finalDate) // Full datetime in yyyy-MM-dd HH:mm:ss
 
         setSelectedDate(finalDate)
         SelectedDate(formattedDate) // Pass formatted date/time back to parent
-        onClose(false) // Close picker
+        onClose(false)
         setCurrentMode('date') // Reset mode for next use
       }
     }
@@ -69,10 +109,9 @@ const DatePicker = ({
         <Datetimepicker
           testID='datetimepicker'
           display='default'
-          mode={currentMode} // Dynamic mode: 'date' or 'time'
-          value={selectedDate}
+          mode={currentMode}
+          value={currentMode === 'time' ? tempDate : selectedDate}
           onChange={onChangeDate}
-          is24Hour={true} // 24-hour format for time picker
         />
       )}
     </Center>

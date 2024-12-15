@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   FormControl,
   VStack,
@@ -10,7 +10,6 @@ import {
   Icon,
   ScrollView
 } from '@gluestack-ui/themed'
-
 import {
   Select,
   SelectTrigger,
@@ -39,8 +38,10 @@ import TaskImages from '@/assets/Icons/TaskSvg'
 import { launchImageLibrary } from 'react-native-image-picker'
 import FileUpload from '@/src/Components/FileUpload'
 import { RefreshControl } from '@gluestack-ui/themed'
-
-const TaskForm = ({ setShowModal }) => {
+import { preloadTaskImages } from '@/src/Hooks/usePreloadAvatar'
+import * as FileSystem from 'expo-file-system'
+import { Box } from '@gluestack-ui/themed'
+const TaskForm = ({ setShowModal, setisRefresh }) => {
   const [tasks, setTasks] = useState([
     {
       Taskname: '',
@@ -57,8 +58,6 @@ const TaskForm = ({ setShowModal }) => {
     renderType: '',
     visible: false
   })
-
-  const [selectedTaskIndex, setSelectedTaskIndex] = useState(null) // Keep track of which task is being updated
 
   const addTask = () => {
     setTasks([
@@ -79,19 +78,38 @@ const TaskForm = ({ setShowModal }) => {
   }
 
   const handleInputChange = (index, field, value) => {
+    const processedValue = typeof value === 'string' ? value.trim() : value
     const updatedTasks = tasks.map((task, i) =>
-      i === index ? { ...task, [field]: value } : task
+      i === index ? { ...task, [field]: processedValue } : task
     )
     setTasks(updatedTasks)
   }
 
   const saveTasks = async () => {
-    try {
-      console.log(tasks)
+    const incompleteTasks = tasks.some(
+      task =>
+        !task.Taskname ||
+        !task.TaskStatus ||
+        !task.Description ||
+        !task.taskprofile
+    )
 
+    if (incompleteTasks) {
+      setShowModal(false)
+      setAlertProps({
+        alertType: 'Error',
+        content: 'Please fill in all fields for each task before submitting.',
+        renderType: 'toast',
+        visible: true
+      })
+      return
+    }
+
+    try {
       const response = await api.post('/user-task', { tasks })
 
       if (response.status === 201) {
+        setisRefresh(true)
         setAlertProps({
           alertType: 'Success',
           content: 'Your Task has been submitted successfully!',
@@ -110,46 +128,54 @@ const TaskForm = ({ setShowModal }) => {
 
   const [selectedImage, setSelectedImage] = useState(null)
 
-  const [base64Image, setBase64Image] = useState('')
-
   const [uploadedOpen, setUploadedOpen] = useState(false)
 
-  const handleImageUpload = async image => {}
+  const [preloadedTaskimg, setpreloadedTaskimg] = useState([])
+
+  const [selectedIndex, setselectedIndex] = useState(null)
+
+  const handleImageUpload = async image => {
+    const imagestring = `${image}`
+    const updatedTasks = tasks.map((task, i) =>
+      i === selectedIndex ? { ...task, taskprofile: imagestring } : task
+    )
+
+    setTasks(updatedTasks)
+  }
 
   const handleUploadRest = async image => {
-    console.log(image)
+    const updatedTasks = tasks.map((task, i) =>
+      i === taskIndex ? { ...task, taskprofile: '' } : task
+    )
+    setTasks(updatedTasks)
+    setSelectedImages(prevImages =>
+      prevImages.filter((_, idx) => idx !== taskIndex)
+    )
   }
 
   const handleImagePress = async (image, taskIndex) => {
-    console.log(image)
+    const imageName = image.split('/').pop()
+    setselectedIndex(taskIndex)
+
+    console.log(`Image Name: ${imageName}`, typeof imageName)
+
+    if (imageName === '12') {
+      setUploadedOpen(true)
+      return
+    }
 
     try {
-      if (image.id === 12) {
-        setUploadedOpen(true)
-      } else {
-        setSelectedImage(image.source)
+      const base64String = await FileSystem.readAsStringAsync(image, {
+        encoding: FileSystem.EncodingType.Base64
+      })
+      
+      const imagestring = `${base64String}`
 
-        // Convert bundled image to Base64 (use fetch approach)
-        const response = await fetch(Image.resolveAssetSource(image.source).uri)
-        const blob = await response.blob()
-        const reader = new FileReader()
-
-        reader.onloadend = () => {
-          const base64String = `data:image/jpeg;base64,${reader.result.split(',')[1]}`; 
-
-          // Update the specific task's profile image
-          const updatedTasks = tasks.map((task, i) =>
-            i === taskIndex
-              ? { ...task, taskprofile: base64String, source: image.source }
-              : task
-          )
-          setTasks(updatedTasks)
-
-          // console.log('Base64 String:', base64String)
-        }
-
-        reader.readAsDataURL(blob)
-      }
+      const updatedTasks = tasks.map((task, i) =>
+        i === taskIndex ? { ...task, taskprofile: imagestring } : task
+      )
+      setSelectedImage(image)
+      setTasks(updatedTasks)
     } catch (error) {
       console.error('Error converting to Base64:', error)
       Alert.alert('Error', 'Failed to select or convert the image.')
@@ -178,6 +204,28 @@ const TaskForm = ({ setShowModal }) => {
     }, 1000)
   }, [])
 
+  const [uploadfileDatas, setuploadfileDatas] = useState({
+    filename: '',
+    size: ''
+  })
+
+  const uploadFileData = (filename, size) => {
+    setuploadfileDatas(current => ({
+      ...current,
+      filename: filename,
+      size: size
+    }))
+  }
+
+  useEffect(() => {
+    const loadAvatars = async () => {
+      const uris = await preloadTaskImages()
+      setpreloadedTaskimg(uris)
+    }
+
+    loadAvatars()
+  }, [])
+
   return (
     <>
       <ScrollView
@@ -185,7 +233,6 @@ const TaskForm = ({ setShowModal }) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-
       >
         <FormControl p={'$2'} rounded={'$lg'}>
           <VStack space='xl'>
@@ -339,20 +386,73 @@ const TaskForm = ({ setShowModal }) => {
                     </Text>
                   </View>
                   <View style={styles.imageGrid}>
-                    {TaskImages.map((image, idx) => (
+                    {preloadedTaskimg.map((uri, idx) => (
                       <TouchableOpacity
                         key={idx}
-                        onPress={() => handleImagePress(image, index)}
+                        onPress={() => handleImagePress(uri, index)}
                         style={[
                           styles.imageWrapper,
-                          task.source === image.source && styles.selectedImage
+                          selectedImage === uri && styles.selectedImage
                         ]}
                       >
-                        <Image source={image.source} style={styles.image} />
+                        <Image source={{ uri }} style={styles.image} />
                       </TouchableOpacity>
                     ))}
                   </View>
                 </View>
+
+                {/* <View>
+                  <Box
+                    bg='#FFFFFF'
+                    style={{
+                      borderRadius: 14,
+                      height: 70,
+                      borderWidth: 1,
+                      borderColor: '#D8DDE5'
+                    }}
+                  >
+                    <HStack my='$3' mx='$2'>
+                      <View display='flex' flexDirection='row'>
+                        <Image
+                          style={{
+                            height: 44,
+                            width: 44,
+                            borderRadius: 14
+                          }}
+                        />
+                        <VStack
+                          mx='$4'
+                          w={
+                            uploadfileDatas.filename.length > 40
+                              ? '$56'
+                              : 'auto'
+                          }
+                        >
+                          <Text
+                            fontFamily='NunitoSans_Bold'
+                            style={{ fontSize: 12 }}
+                          >
+                            {uploadfileDatas.filename}
+                          </Text>
+                          <Text
+                            fontFamily='NunitoSans_Regular'
+                            style={{ fontSize: 12 }}
+                          >
+                            {uploadfileDatas.size}
+                          </Text>
+                        </VStack>
+                      </View>
+
+                      <View>
+                        <TouchableOpacity onPress={handleUploadRest}>
+                          <Icon as={TrashIcon} size='md' color='red' />
+                        </TouchableOpacity>
+                      </View>
+                    </HStack>
+                  </Box>
+                </View> */}
+
+
               </VStack>
             ))}
 
@@ -410,6 +510,7 @@ const TaskForm = ({ setShowModal }) => {
         onClose={() => setUploadedOpen(false)}
         images={handleImageUpload}
         ClearImage={handleUploadRest}
+        fileData={(filename, size) => uploadFileData(filename, size)}
       />
     </>
   )

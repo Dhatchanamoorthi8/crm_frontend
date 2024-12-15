@@ -72,7 +72,7 @@ const Attendance = ({ onScroll }) => {
     new Date().toLocaleTimeString()
   )
 
-  console.log(attendanceTime)
+
 
   const toast = useToast()
 

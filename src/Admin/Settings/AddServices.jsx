@@ -37,7 +37,6 @@ import { Dimensions } from 'react-native'
 const AddServices = () => {
   const screenHeight = Dimensions.get('screen').height
 
-  console.log(screenHeight, 'screenHeight')
 
   const [ServicesData, SetServicesData] = useState([])
 
@@ -70,7 +69,6 @@ const AddServices = () => {
 
       if (response.status === 200) {
         SetServicesData(response.data)
-        console.log(response.data)
       }
     } catch (error) {
       console.log(error)
@@ -78,7 +76,6 @@ const AddServices = () => {
   }
 
   const handlepressEdit = (id, name) => {
-    console.log(id, name)
     setServicesEditData(current => ({
       ...current,
       s_id: id,
@@ -113,7 +110,6 @@ const AddServices = () => {
           visible: true
         })
 
-        console.log(response.data)
       }
     } catch (error) {
       console.log(error)

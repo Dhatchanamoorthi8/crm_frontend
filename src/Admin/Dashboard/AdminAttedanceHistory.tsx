@@ -30,8 +30,6 @@ const AdminAttedanceHistory = ({ route }) => {
 
             if (response.data) {
                 setHistoryData(response.data)
-                console.log(response.data);
-
             }
 
 
@@ -93,7 +91,7 @@ const AdminAttedanceHistory = ({ route }) => {
                         </View>
 
                         {HistoryData.map((item, index) => (
-                            <Card variant='elevated' style={styles.card}>
+                            <Card variant='elevated' style={styles.card} key={index}>
                                 <View>
                                     <VStack space='4xl'>
                                         <HStack
@@ -118,13 +116,13 @@ const AdminAttedanceHistory = ({ route }) => {
                     )} */}
                                                 </Avatar>
                                                 <VStack>
-                                                    <Heading size='sm' fontFamily='MonaSans_400Regular'>
+                                                    <Heading size='sm' fontFamily='NunitoSans_Bold'>
                                                         {item.name}
                                                     </Heading>
                                                     <Text
                                                         size='sm'
                                                         style={{ color: '#91929E', fontSize: 14 }}
-                                                        fontFamily='MonaSans_400Regular'
+                                                        fontFamily='NunitoSans_Regular'
                                                     >
                                                         {item.designation}
                                                     </Text>
@@ -153,7 +151,7 @@ const AdminAttedanceHistory = ({ route }) => {
 
                                         <Text
                                             style={{ color: '#0A1629', fontSize: 16 }}
-                                            fontFamily='MonaSans_400Regular'
+                                            fontFamily='NunitoSans_Regular'
                                         >
                                             {item.intime ? item.intime : 'Null'}
                                         </Text>
@@ -162,14 +160,14 @@ const AdminAttedanceHistory = ({ route }) => {
                                     <View>
                                         <Text
                                             style={{ color: '#91929E', fontSize: 14 }}
-                                            fontFamily='MonaSans_400Regular'
+                                            fontFamily='NunitoSans_Regular'
                                         >
                                             Outtime
                                         </Text>
 
                                         <Text
                                             style={{ color: '#0A1629', fontSize: 16 }}
-                                            fontFamily='MonaSans_400Regular'
+                                            fontFamily='NunitoSans_Regular'
                                         >
                                             {item.outime ? item.outime : 'null'}
                                         </Text>
@@ -178,14 +176,14 @@ const AdminAttedanceHistory = ({ route }) => {
                                     <View>
                                         <Text
                                             style={{ color: '#91929E', fontSize: 14 }}
-                                            fontFamily='MonaSans_400Regular'
+                                            fontFamily='NunitoSans_Regular'
                                         >
                                             late Time
                                         </Text>
 
                                         <Text
                                             style={{ color: '#0A1629', fontSize: 16 }}
-                                            fontFamily='MonaSans_400Regular'
+                                            fontFamily='NunitoSans_Regular'
                                         >
                                             {item.lateTime ? item.lateTime : 'Null'}
                                         </Text>
@@ -195,14 +193,14 @@ const AdminAttedanceHistory = ({ route }) => {
                                 <View>
                                     <Text
                                         style={{ color: '#91929E', fontSize: 14 }}
-                                        fontFamily='MonaSans_400Regular'
+                                        fontFamily='NunitoSans_Regular'
                                     >
                                         Position
                                     </Text>
 
                                     <Text
                                         style={{ color: '#0A1629', fontSize: 16 }}
-                                        fontFamily='MonaSans_400Regular'
+                                        fontFamily='NunitoSans_Regular'
                                     >
                                         {item.designationName}
                                     </Text>

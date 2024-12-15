@@ -4,14 +4,18 @@
     "slug": "Vingro Crm",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/screen.png",
+    "icon": "./assets/vingrologo.png",
     "assetBundlePatterns": [
       "**/*",
-      "./assets/fonts/*"
+      "./assets/fonts/*",
+      "./assets/Icons/*",
+      "./assets/Icons/girlsIcon/*",
+      "./assets/Icons/menIcon/*",
+      "./assets/Icons/TaskIcons/*"
     ],
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/screen.png",
+      "image": "./assets/vingrologo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -29,20 +33,23 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ],[
+      ],
+      [
         "expo-notifications",
         {
-          "icon": "./assets/screen.png",
+          "icon": "./assets/vingrologo.png",
           "color": "#ffffff",
           "defaultChannel": "default",
           "enableBackgroundRemoteNotifications": true
         }
-      ],[
+      ],
+      [
         "expo-av",
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "ios": {
       "supportsTablet": true,
@@ -54,7 +61,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/screen.png",
+        "foregroundImage": "./assets/vingrologo.png",
         "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
