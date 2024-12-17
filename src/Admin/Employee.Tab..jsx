@@ -71,6 +71,7 @@ import MenAvatar from '@/assets/Icons/menIcon/MenAvatar'
 import GirlAvatar from '@/assets/Icons/girlsIcon/GirlAvatar'
 import { preloadAvatarMen, preloadAvatarWomen } from '../Hooks/usePreloadAvatar'
 import * as FileSystem from 'expo-file-system'
+import Spinner from 'react-native-loading-spinner-overlay'
 const { width } = Dimensions.get('window')
 
 const EmployeeTab = () => {
@@ -92,6 +93,8 @@ const EmployeeTab = () => {
   const [CompanyDropDown, SetCompanyDropDown] = useState([])
 
   const [refreshing, setRefreshing] = useState(false)
+
+  const [loader, setloader] = useState(false)
 
   const [EmployeerRegisterData, SetEmployeerRegisterData] = useState({
     name: '',
@@ -172,13 +175,16 @@ const EmployeeTab = () => {
   }
 
   const fetchData = async () => {
+    setloader(true)
     try {
       const userdesgination = await api.get('userdesgination')
       const company_fetch = await api.get('companymaster')
       setDesginationDropDown(userdesgination.data)
       SetCompanyDropDown(company_fetch.data)
+      setloader(false)
     } catch (error) {
       console.log(error)
+      setloader(false)
     }
   }
 
@@ -274,6 +280,7 @@ const EmployeeTab = () => {
 
   const handleSave = async () => {
     if (validate()) {
+      setloader(true)
       try {
         // const payload = {
         //   ...EmployeerRegisterData,
@@ -289,7 +296,10 @@ const EmployeeTab = () => {
             renderType: 'toast',
             visible: true
           })
+          setloader(false)
+          return
         }
+        setloader(false)
       } catch (error) {
         setShowModal(false)
         setAlertProps({
@@ -298,6 +308,7 @@ const EmployeeTab = () => {
           renderType: 'toast',
           visible: true
         })
+        setloader(false)
       }
     } else {
       console.log('failed validation')
@@ -847,6 +858,10 @@ const EmployeeTab = () => {
           )}
         </Center>
       </View>
+
+      <Center>
+        <Spinner size='large' visible={loader} />
+      </Center>
     </>
   )
 }

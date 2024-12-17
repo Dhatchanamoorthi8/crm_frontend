@@ -4,6 +4,7 @@ import api from '@/src/Services/axiosConfig';
 import { AvatarFallbackText } from '@gluestack-ui/themed';
 import { Avatar } from '@gluestack-ui/themed';
 import { AvatarBadge } from '@gluestack-ui/themed';
+import { AvatarImage } from '@gluestack-ui/themed';
 import { Card, Center, ScrollView, Text, View } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -238,9 +239,14 @@ const AdminDashboard = () => {
                                     {presentCardData.length > 0 ? (
                                         presentCardData.map((item, index) => (
                                             <TouchableOpacity
-                                                key={item.id} // Use a unique key for each item
-                                                onPress={() => navigate.navigate('AdminAttedanceHistory', {
-                                                    filtertype: 'present'
+                                                key={index}
+                                                onPress={() => navigate.navigate('UserTasks', {
+                                                    userid: item.userId,
+                                                    userdata: {
+                                                        name: item.name,
+                                                        desgination: item.designation,
+                                                        profile: item.profile
+                                                    }
                                                 })}
                                                 style={{
                                                     width: '45%',
@@ -259,20 +265,31 @@ const AdminDashboard = () => {
                                                 >
                                                     <View style={{ alignItems: 'center' }}>
 
-                                                        <Avatar
-                                                            size='md'
-                                                            bg={ColorCodes(item.name)}
-                                                        >
-                                                            <AvatarFallbackText>
-                                                                {item.name}
-                                                            </AvatarFallbackText>
-                                                            {/* {item.Status === 'P' ? (
-                                                                        <AvatarBadge bg='red' />
-                                                                    ) : (
-                                                                        <AvatarBadge bg='green' />
-                                                                    )} */}
-                                                        </Avatar>
+                                                        <TouchableOpacity onPress={() => navigate.navigate('UserTasks', {
+                                                            userid: item.userId,
+                                                            userdata: {
+                                                                name: item.name,
+                                                                desgination: item.designation,
+                                                                profile: item.profile
+                                                            }
+                                                        })}>
 
+                                                            <Avatar
+                                                                size='md'
+                                                                bg={ColorCodes(item.name)}
+                                                            >
+
+                                                                {/* <AvatarFallbackText className='text-white'>
+                                                                    {item.name}
+                                                                </AvatarFallbackText> */}
+
+                                                                <AvatarImage
+                                                                    source={{
+                                                                        uri: `data:image/png;base64,${item.profile}`
+                                                                    }}
+                                                                />
+                                                            </Avatar>
+                                                        </TouchableOpacity>
                                                     </View>
                                                     <Text
                                                         style={{

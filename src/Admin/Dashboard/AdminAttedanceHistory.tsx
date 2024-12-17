@@ -77,8 +77,6 @@ const AdminAttedanceHistory = ({ route }) => {
 
                 ) : (
                     <View style={styles.cardWrapper}>
-
-
                         <View mx={'$3'} my={'$3'}>
                             <Text
                                 fontFamily='MonaSans_400Regular'

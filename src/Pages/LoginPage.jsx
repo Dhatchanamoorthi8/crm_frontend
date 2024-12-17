@@ -6,67 +6,82 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Dimensions
+  Dimensions,
+  Animated
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Image } from 'react-native'
 import LottieView from 'lottie-react-native'
 import api from '../Services/axiosConfig'
 import { useNavigation } from '@react-navigation/native'
 import { useDispatch } from 'react-redux'
-import config from '../config'
 import { login } from '../../Slices/userSlice'
+
 const logoUri = require('../../assets/vingrologo.png')
 
 const lottiePath = require('../../assets/Icons/loginanimation.json')
 
 export default function App () {
   const [isEmail, setIsEmail] = useState(true)
-
   const animation = useRef(null)
-
   const nav = useNavigation()
-
-  const [LoginData, SetLoginData] = useState({
-    email: '',
-    password: ''
-  })
-
+  const [LoginData, SetLoginData] = useState({ email: '', password: '' })
   const dispatch = useDispatch()
-
-  const [spinner, setspinner] = useState(false)
-
-  const [loader, setloader] = useState(false)
-
   const [showPassword, setShowPassword] = useState(false)
+
+  const [errorMessage, setErrorMessage] = useState('')
+  const [errorOpacity] = useState(new Animated.Value(0)) // Animation for error message
 
   const handleLogin = async () => {
     try {
       if (LoginData.email && LoginData.password) {
-        const reponse = await api.post(`/auth/login`,LoginData)
-        const token = reponse.data.access_token
-        const user = reponse.data.userData
+        const response = await api.post(`/auth/login`, LoginData)
+        const token = response.data.access_token
+        const user = response.data.userData
 
         const userData = { user, token }
-
 
         dispatch(login(userData))
         nav.navigate('DrawerNavigator')
       } else {
-        alert('Please enter valid credentials')
+        showErrorMessage('Please enter valid credentials')
       }
     } catch (error) {
-      console.log(error)
+      if (error.response) {
+        const backendMessage =
+          error.response.data?.message || 'Something went wrong!'
+        showErrorMessage(backendMessage)
+      } else if (error.request) {
+        showErrorMessage('No response from the server. Please try again later.')
+      } else {
+        showErrorMessage('An unexpected error occurred. Please try again.')
+      }
+      console.log('Error:', error)
     }
   }
 
-  const handleState = () => {
-    setShowPassword(!showPassword)
+  const showErrorMessage = message => {
+    setErrorMessage(message)
+
+    // Fade in the error message
+    Animated.timing(errorOpacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true
+    }).start(() => {
+      // Fade out after 2 seconds
+      setTimeout(() => {
+        Animated.timing(errorOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true
+        }).start()
+      }, 2000)
+    })
   }
 
   return (
     <LinearGradient
-      colors={['#990ECA', '#FFFFF']}
+      colors={['#990ECA', 'white']}
       style={styles.gradientBackground}
     >
       <SafeAreaView style={styles.container}>
@@ -98,7 +113,7 @@ export default function App () {
               placeholder={isEmail ? 'Enter email ID' : 'Enter phone number'}
               keyboardType={isEmail ? 'email-address' : 'phone-pad'}
               onChangeText={e => SetLoginData({ ...LoginData, email: e })}
-              defaultValue={LoginData.usercode}
+              defaultValue={LoginData.email}
             />
             <TextInput
               style={styles.input}
@@ -109,7 +124,10 @@ export default function App () {
             />
 
             {/* Forgot Password */}
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity
+              style={styles.forgotPassword}
+              onPress={() => nav.navigate('ForgotPasswordScreen')}
+            >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
@@ -119,6 +137,15 @@ export default function App () {
             </TouchableOpacity>
           </LinearGradient>
         </View>
+
+        {/* Animated Error Message */}
+        <Animated.View
+          style={[styles.errorContainer, { opacity: errorOpacity }]}
+        >
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        </Animated.View>
+
+        
       </SafeAreaView>
     </LinearGradient>
   )
@@ -140,9 +167,9 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   loginCardContainer: {
-    flex: 0, // Occupies the remaining space
-    justifyContent: 'center', // Center vertically
-    alignItems: 'center', // Center horizontally
+    flex: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 30
   },
   formContainer: {
@@ -158,11 +185,11 @@ const styles = StyleSheet.create({
     shadowRadius: 5
   },
   loginWith: {
-    fontSize: 18,
-    fontWeight: '500',
+    fontSize: 20,
     marginTop: 20,
     marginBottom: 20,
-    color: '#6A1B9A'
+    color: '#6A1B9A',
+    fontFamily: 'NunitoSans_Bold'
   },
   input: {
     width: '100%',
@@ -173,7 +200,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 15,
     fontSize: 16,
-    backgroundColor: '#F3E5F5'
+    backgroundColor: '#F3E5F5',
+    fontFamily: 'NunitoSans_Regular'
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -181,7 +209,8 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#6A1B9A'
+    color: '#6A1B9A',
+    fontFamily: 'NunitoSans_Regular'
   },
   loginButton: {
     backgroundColor: '#6A1B9A',
@@ -194,11 +223,30 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontFamily: 'NunitoSans_Bold'
   },
   lottie: {
     width: Dimensions.get('window').width,
     height: 300,
-    borderRadius: 12 // Optional: rounded corners for the animation container
+    borderRadius: 12
+  },
+  errorContainer: {
+    position: 'absolute',
+    bottom: 50, // Error message at the bottom of the screen
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#F44336',
+    borderRadius: 8,
+    marginHorizontal: 20
+  },
+  errorText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    fontFamily: 'NunitoSans_Bold'
   }
 })

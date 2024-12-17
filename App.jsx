@@ -41,6 +41,8 @@ import ProfileScreen from './src/Pages/ProfileScreen'
 import CommonSettings from './src/Pages/Settings/CommonSettings'
 import AboutScreen from './src/Pages/Settings/AboutScreen'
 import AdminAttedanceHistory from './src/Admin/Dashboard/AdminAttedanceHistory'
+import UserTaskView from './src/Admin/UserTask/UserTaskView'
+import ForgotPasswordScreen from './src/Pages/ForgotPasswordScreen'
 SplashScreen.preventAutoHideAsync()
 
 const Stack = createStackNavigator()
@@ -462,6 +464,45 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
+
+              <Stack.Screen
+                name='UserTasks'
+                options={{
+                  headerShown: true,
+                  title: 'Tasks Summary',
+                  transitionSpec: {
+                    open: config,
+                    close: config
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
+                }}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <UserTaskView route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>
             </Stack.Group>
           </>
         ) : (
@@ -469,6 +510,12 @@ function MainNavigator () {
             <Stack.Screen
               name='Login'
               component={LoginPage}
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Screen
+              name='ForgotPasswordScreen'
+              component={ForgotPasswordScreen}
               options={{ headerShown: false }}
             />
           </Stack.Group>
