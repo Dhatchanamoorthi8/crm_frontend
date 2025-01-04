@@ -30,6 +30,10 @@ const CommonSettings = () => {
     const [userData, setuserData] = useState(state.user.userData.user)
 
 
+    console.log(userData, 'userData');
+
+
+
 
 
 
@@ -92,6 +96,7 @@ const CommonSettings = () => {
                                         source={{
                                             uri: `data:image/png;base64,${userData.profile}`
                                         }}
+                                        alt={'User Avatar'} // Optional alt text to suppress the warning
                                     />
                                 )}
                             </Avatar>

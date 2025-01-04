@@ -10,7 +10,7 @@ module.exports = {
     './src/core-components/**/*.{html,js,jsx,ts,tsx,mdx}', // Core components
     './src/hooks/**/*.{html,js,jsx,ts,tsx,mdx}', // Hooks
     './src/Pages/**/*.{html,js,jsx,ts,tsx,mdx}',
-    './src/Components/**/*.{html,js,jsx,ts,tsx,mdx}'
+    './src/Components/**/*.{js,jsx,ts,tsx}'
   ],
   presets: [require('nativewind/preset')],
   safelist: [

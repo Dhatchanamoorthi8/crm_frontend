@@ -1,6 +1,6 @@
 export default {
   //API_URL: 'http://192.168.205.4:3000',
-  API_URL: 'http://192.168.29.171:3000',
+  API_URL: 'http://rspm.org.in:3450',
   API_KEY: '192.168.31.6'
 }
 

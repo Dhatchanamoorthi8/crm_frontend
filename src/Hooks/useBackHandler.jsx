@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BackHandler } from 'react-native'
-import { useNavigationState, useNavigation } from '@react-navigation/native'
+import { useNavigation, useNavigationState } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../../Slices/userSlice'
 
@@ -10,29 +10,51 @@ export const useBackHandler = () => {
   const dispatch = useDispatch()
 
   const isAuthenticated = useSelector(state => state.user.isAuthenticated)
+
   const [showAlertDialog, setShowAlertDialog] = useState(false)
+
+  const routes = useNavigationState(state => state.routes)
 
   const handleLogout = async () => {
     dispatch(logout())
-    setTimeout(() => {
-      // navigation.reset({
-      //   index: 0,
-      //   routes: [{ name: 'Login' }]
-      // })
-    }, 0) // Ensure navigation reset happens after logout state change
+    // setTimeout(() => {
+    //   // navigation.reset({
+    //   //   index: 0,
+    //   //   routes: [{ name: 'Login' }]
+    //   // })
+    // }, 0) // Ensure navigation reset happens after logout state change
   }
 
   useEffect(() => {
     const backAction = () => {
-      // Get the current route
-      const currentRoute =
-        navigation.getState().routes[navigation.getState().index].name
+      console.log(routes, 'routesroutes')
 
-      if (isAuthenticated && currentRoute === 'Dashboard') {
-        // If user is on the Dashboard, show logout confirmation
-        setShowAlertDialog(true)
-        return true // Prevent default back behavior
+
+      const getFocusedRouteNameFromNestedNavigator = route => {
+        if (route?.state) {
+          const nestedRoute = route.state.routes[route.state.index]
+          return (
+            getFocusedRouteNameFromNestedNavigator(nestedRoute) ||
+            nestedRoute.name
+          )
+        }
+        return route?.name
       }
+
+      const focusedRouteName = getFocusedRouteNameFromNestedNavigator(
+        routes[routes.length - 1]
+      )
+
+      console.log(focusedRouteName, 'focusedRouteName')
+
+      // // Get the current route
+      // const currentRoute =
+      //   navigation.getState().routes[navigation.getState().index].name
+
+      // if (isAuthenticated && currentRoute === 'DrawerNavigator') {
+      //   setShowAlertDialog(true)
+      //   return true // Prevent default back behavior
+      // }
       return false // Allow default back behavior on other screens
     }
 

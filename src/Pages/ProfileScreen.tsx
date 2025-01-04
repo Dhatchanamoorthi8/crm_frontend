@@ -162,7 +162,7 @@ const ProfileScreen = () => {
                 }));
 
                 dispatch(updateUserData(updatedProfileData));
-                await fetchUserData(); 
+                await fetchUserData();
                 Alert.alert('Success', 'Your profile image has been updated successfully.');
             } else {
                 console.error('Unexpected response:', response);
@@ -268,7 +268,7 @@ const ProfileScreen = () => {
                                                 </AvatarFallbackText>
 
                                                 {userData.profile && (
-                                                    <AvatarImage source={{ uri: `data:image/png;base64,${userData.profile}` }} />
+                                                    <AvatarImage source={{ uri: `data:image/png;base64,${userData.profile}` }} alt={'User Avatar'} />
                                                 )
                                                 }
 
@@ -492,8 +492,6 @@ const ProfileScreen = () => {
                     </View>
 
                 </>
-
-
                 <FileUpload
                     isOpen={uploadedOpen}
                     onClose={handleCloseUpload}
@@ -501,19 +499,12 @@ const ProfileScreen = () => {
                     ClearImage={handleUploadRest}
                     fileData={(filename, size) => uploadFileData(filename, size)}
                 />
-
-
                 <Avatar3D
                     isOpen={isAvatar3D}
                     onClose={() => setisAvatar3D(false)}
                     images={handleImageUpload}
                 />
-
-
             </ScrollView >
-
-
-
             <Modal
                 isOpen={isModelEdit}
                 onClose={() => {

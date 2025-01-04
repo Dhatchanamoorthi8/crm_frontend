@@ -10,7 +10,6 @@ import {
 } from 'react-native'
 
 const ImagePreview = ({ imageBase64, modalVisible, closeModal }) => {
-
   const fadeAnim = useRef(new Animated.Value(0)).current // For opacity
   const scaleAnim = useRef(new Animated.Value(0.8)).current // For scaling
 
@@ -92,15 +91,18 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '90%',
     height: '45%',
-    borderRadius: 14,
+    borderRadius: 22,
     backgroundColor: 'white',
-    padding: 5,
-    overflow: 'hidden'
+    padding: 10,
+    overflow: 'visible',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   image: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 40,
+    padding: 10,
+    width: '80%',
+    height: '80%',
+    borderRadius: 620,
     borderCurve: 'circular',
     backgroundColor: 'transparent'
   }

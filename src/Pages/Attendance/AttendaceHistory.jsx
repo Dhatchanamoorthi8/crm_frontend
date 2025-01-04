@@ -82,7 +82,7 @@ const AttendaceHistory = () => {
             <Card
               variant='elevated'
               style={styles.card}
-              key={item.s_id}
+              key={index}
               // backgroundColor='black'
             >
               <View

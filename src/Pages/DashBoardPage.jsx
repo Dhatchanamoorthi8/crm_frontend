@@ -127,7 +127,11 @@ const DashBoardPage = () => {
 
             {/* Followup Cards Section */}
             <View>
-              <DashBoardCards user_id={user_id} isRefresh={isRefresh} />
+              <DashBoardCards
+                user_id={user_id}
+                isRefresh={isRefresh}
+                setisRefresh={setisRefresh}
+              />
 
               <Center>
                 <Spinner size='large' visible={loader} />

@@ -14,6 +14,11 @@ import { LinearGradient } from 'expo-linear-gradient'
 import LottieView from 'lottie-react-native'
 import api from '../Services/axiosConfig'
 import { useNavigation } from '@react-navigation/native'
+import { Center } from '@gluestack-ui/themed'
+import Spinner from 'react-native-loading-spinner-overlay'
+import { KeyboardAvoidingView } from '@gluestack-ui/themed'
+import { ScrollView } from '@gluestack-ui/themed'
+import { Platform } from 'react-native'
 
 const lottiePath = require('../../assets/Icons/otp-animation.json')
 
@@ -34,6 +39,8 @@ export default function ForgotPasswordScreen () {
   const [errorMessage, setErrorMessage] = useState('')
   const [errorOpacity] = useState(new Animated.Value(0))
 
+  const [loader, setloader] = useState(false)
+
   // Send OTP
   const sendOtp = async () => {
     try {
@@ -42,20 +49,24 @@ export default function ForgotPasswordScreen () {
         return
       }
 
-      // API call to send OTP
-      const response = await api.post('/auth/send-otp', { email })
+      setloader(true)
+      const response = await api.post('/auth/send-otp', { email, dob })
+
       if (response.status === 201) {
         setOtpSent(true)
+        setloader(false)
         Alert.alert('Success', 'OTP has been sent to your email.')
       } else {
+        setloader(false)
         Alert.alert('Error', response.data.message || 'Failed to send OTP.')
       }
     } catch (error) {
       console.error(error)
+      setloader(false)
       const backendMessage =
         error.response.data?.message || 'Something went wrong!'
       showErrorMessage(backendMessage)
-      Alert.alert('Error', 'Failed to send OTP. Please try again.')
+      //Alert.alert('Error', 'Failed to send OTP. Please try again.')
     }
   }
 
@@ -66,15 +77,19 @@ export default function ForgotPasswordScreen () {
         Alert.alert('Error', 'Please enter the OTP.')
         return
       }
+      setloader(true)
       const response = await api.post('/auth/verify-otp', { email, otp })
       if (response.status === 201) {
         setOtpVerified(true)
+        setloader(false)
         Alert.alert('Success', 'OTP Verified! You can now reset your password.')
       } else {
+        setloader(false)
         Alert.alert('Error', response.data.message || 'Invalid OTP.')
       }
     } catch (error) {
       console.error(error)
+      setloader(false)
       const backendMessage =
         error.response.data?.message || 'Something went wrong!'
       showErrorMessage(backendMessage)
@@ -82,7 +97,6 @@ export default function ForgotPasswordScreen () {
     }
   }
 
-  // Reset Password
   const resetPassword = async () => {
     try {
       if (!newPassword || !confirmPassword) {
@@ -95,18 +109,20 @@ export default function ForgotPasswordScreen () {
         return
       }
 
+      setloader(true)
       const payload = { email, otp, password: newPassword }
 
       // API call to reset password
       const response = await api.post('/auth/reset-password', payload)
 
       if (response.status === 201) {
+        setloader(false)
         nav.navigate('Login')
         // Alert.alert('Success', 'Password has been reset. You can now log in.')
-
         setOtpSent(false)
         setOtpVerified(false)
       } else {
+        setloader(false)
         Alert.alert(
           'Error',
           response.data.message || 'Failed to reset password.'
@@ -114,6 +130,7 @@ export default function ForgotPasswordScreen () {
       }
     } catch (error) {
       console.error(error)
+      setloader(false)
       const backendMessage =
         error.response.data?.message || 'Something went wrong!'
       showErrorMessage(backendMessage)
@@ -146,92 +163,118 @@ export default function ForgotPasswordScreen () {
       style={styles.gradientBackground}
     >
       <SafeAreaView style={styles.container}>
-        <LinearGradient
-          colors={['#8E24AA', '#6A1B9A']}
-          style={styles.curvedBackground}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : null}
         >
-          <View>
-            <LottieView
-              autoPlay
-              loop
-              ref={animation}
-              style={styles.lottie}
-              source={lottiePath}
-            />
-          </View>
-        </LinearGradient>
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps='handled'
+          >
+            <LinearGradient
+              colors={['#8E24AA', '#6A1B9A']}
+              style={styles.curvedBackground}
+            >
+              <View>
+                <LottieView
+                  autoPlay
+                  loop
+                  ref={animation}
+                  style={styles.lottie}
+                  source={lottiePath}
+                />
+              </View>
+            </LinearGradient>
 
-        <View style={styles.formContainer}>
-          {!otpSent && !otpVerified && (
-            <>
-              <Text style={styles.title}>Forgot Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder='Enter your email'
-                keyboardType='email-address'
-                value={email}
-                onChangeText={setEmail}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder='Enter your Date of Birth (YYYY-MM-DD)'
-                value={dob}
-                onChangeText={setDob}
-              />
-              <TouchableOpacity style={styles.button} onPress={sendOtp}>
-                <Text style={styles.buttonText}>Send OTP</Text>
-              </TouchableOpacity>
-            </>
-          )}
+            <View style={styles.formContainer}>
+              {!otpSent && !otpVerified && (
+                <>
+                  <Text style={styles.title}>Forgot Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Enter your email'
+                    keyboardType='email-address'
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Enter your Date of Birth (YYYY-MM-DD)'
+                    value={dob}
+                    onChangeText={setDob}
+                  />
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => sendOtp()}
+                  >
+                    <Text style={styles.buttonText}>Send OTP</Text>
+                  </TouchableOpacity>
+                </>
+              )}
 
-          {otpSent && !otpVerified && (
-            <>
-              <Text style={styles.title}>Verify OTP</Text>
-              <TextInput
-                style={styles.input}
-                placeholder='Enter OTP'
-                keyboardType='numeric'
-                value={otp}
-                onChangeText={setOtp}
-              />
-              <TouchableOpacity style={styles.button} onPress={verifyOtp}>
-                <Text style={styles.buttonText}>Verify OTP</Text>
-              </TouchableOpacity>
-            </>
-          )}
+              {otpSent && !otpVerified && (
+                <>
+                  <Text style={styles.title}>Verify OTP</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Enter OTP'
+                    keyboardType='numeric'
+                    value={otp}
+                    onChangeText={setOtp}
+                  />
+                  <TouchableOpacity style={styles.button} onPress={verifyOtp}>
+                    <Text style={styles.buttonText}>Verify OTP</Text>
+                  </TouchableOpacity>
+                </>
+              )}
 
-          {otpVerified && (
-            <>
-              <Text style={styles.title}>Reset Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder='Enter New Password'
-                secureTextEntry
-                value={newPassword}
-                onChangeText={setNewPassword}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder='Confirm New Password'
-                secureTextEntry
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-              <TouchableOpacity style={styles.button} onPress={resetPassword}>
-                <Text style={styles.buttonText}>Reset Password</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+              {otpVerified && (
+                <>
+                  <Text style={styles.title}>Reset Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Enter New Password'
+                    secureTextEntry
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Confirm New Password'
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={resetPassword}
+                  >
+                    <Text style={styles.buttonText}>Reset Password</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
 
-        {/* Animated Error Message */}
-        <Animated.View
-          style={[styles.errorContainer, { opacity: errorOpacity }]}
-        >
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </Animated.View>
-
+            {/* Animated Error Message */}
+            <Animated.View
+              style={[styles.errorContainer, { opacity: errorOpacity }]}
+            >
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <Center>
+        <Spinner
+          size='large'
+          visible={loader}
+          textContent='Verification ...'
+          animation='fade'
+          textStyle={styles.loaderText}
+        />
+      </Center>
     </LinearGradient>
   )
 }
@@ -240,11 +283,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-start', // Ensure content aligns from the top
+    paddingVertical: 20 // Add some vertical padding
+  },
   gradientBackground: {
     flex: 1
   },
+
   curvedBackground: {
-    flex: 0,
+    flex: 0.2,
     borderBottomLeftRadius: 50,
     borderBottomRightRadius: 50,
     overflow: 'hidden',
@@ -308,5 +357,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     fontFamily: 'NunitoSans_Bold'
+  },
+
+  loaderText: {
+    fontSize: 22,
+    marginBottom: 20,
+    color: '#7D8592',
+    fontFamily: 'NunitoSans_Regular',
+    textAlign: 'center'
   }
 })

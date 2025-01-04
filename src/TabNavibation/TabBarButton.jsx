@@ -50,8 +50,9 @@ const TabBarButton = props => {
         style={[
           {
             color,
-            fontSize: 12,
-            fontFamily: 'NunitoSans_Bold'
+            fontSize: 11,
+            fontFamily: 'NunitoSans_Bold',
+            marginBottom:10
           },
           animatedTextStyle
         ]}

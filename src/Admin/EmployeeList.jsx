@@ -163,6 +163,7 @@ const EmployeeList = () => {
                             source={{
                               uri: `data:image/png;base64,${item.profile}`
                             }}
+                            alt={'User Avatar'} // Optional alt text to suppress the warning
                           />
                           {item.isactive ? (
                             <AvatarBadge bg='$green400' />

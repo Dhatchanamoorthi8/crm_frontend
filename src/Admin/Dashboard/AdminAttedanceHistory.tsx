@@ -24,18 +24,17 @@ const AdminAttedanceHistory = ({ route }) => {
     const [HistoryData, setHistoryData] = useState([])
 
     const fetchData = async () => {
+        setloader(true)
         try {
-
             const response = await api.get(`attendance/adminAttendanceHistory?filtertype=${filtertype}`)
-
             if (response.data) {
                 setHistoryData(response.data)
+                setloader(false)
             }
 
 
-
         } catch (error) {
-
+            setloader(false)
             console.log(error);
 
         }
@@ -193,14 +192,14 @@ const AdminAttedanceHistory = ({ route }) => {
                                         style={{ color: '#91929E', fontSize: 14 }}
                                         fontFamily='NunitoSans_Regular'
                                     >
-                                        Position
+                                        Location
                                     </Text>
 
                                     <Text
                                         style={{ color: '#0A1629', fontSize: 16 }}
                                         fontFamily='NunitoSans_Regular'
                                     >
-                                        {item.designationName}
+                                        {item.locationName}
                                     </Text>
                                 </View>
 

@@ -1,36 +1,43 @@
 import axios from 'axios'
-import { logout } from '../../Slices/userSlice' // Import the logout action
+import { logout } from '../../Slices/userSlice'
 import config from '../config'
-import { store } from '../../Store/store' // Adjust the relative path as necessary
+import { store } from '../../Store/store'
+import getDeviceInfo from './deviceInfo' // Import the device info utility
 
 const api = axios.create({
-  baseURL: config.API_URL, // Your API base URL
+  baseURL: config.API_URL,
   timeout: 10000
 })
 
-const getAuthData = () => {
-  const state = store.getState() // Get the Redux state
-  const isAuthenticated = state.user.isAuthenticated // Check if user is authenticated
-  const token = isAuthenticated ? state.user.userData.token : null // Get token from state
-  const user_id = isAuthenticated ? state.user.userData.user.userid : null // Get userId from state
-  return { token, user_id }
+const getAuthData = async () => {
+  const state = store.getState()
+  const isAuthenticated = state.user.isAuthenticated
+  const token = isAuthenticated ? state.user.userData.token : null
+  const user_id = isAuthenticated ? state.user.userData.user.userid : null
+
+  // Retrieve device info
+  const { deviceId, deviceInfo } = await getDeviceInfo()
+
+  return { token, user_id, deviceId, deviceInfo }
 }
 
 // Add request interceptor
 api.interceptors.request.use(
-  config => {
-    const { token, user_id } = getAuthData() // Get token and userId
+  async config => {
+    const { token, user_id, deviceId, deviceInfo } = await getAuthData()
 
-
-
-
+    // Attach headers
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
+    if (deviceId) {
+      config.headers['device-id'] = deviceId
+    }
+    if (deviceInfo) {
+      config.headers['device-info'] = JSON.stringify(deviceInfo)
+    }
 
-
-
-    // Attach userId to the request body if userId exists and it's a POST, PUT, or PATCH request
+    // Attach user_id to request body
     if (
       user_id &&
       (config.method === 'post' ||
@@ -38,12 +45,10 @@ api.interceptors.request.use(
         config.method === 'patch')
     ) {
       if (!config.data) {
-        config.data = {} // Ensure the data object exists
+        config.data = {}
       }
-      config.data.user_id = user_id // Attach userId to the request body
+      config.data.user_id = user_id
     }
-
-
 
     return config
   },
@@ -54,19 +59,12 @@ api.interceptors.request.use(
 
 // Add response interceptor
 api.interceptors.response.use(
-  response => {
-    // Handle the response (if needed, you can log or manipulate the response here)
-    return response
-  },
+  response => response,
   error => {
-    // Handle errors
     if (error.response && error.response.status === 401) {
-      // If the error is 401 Unauthorized, log the user out
-      const dispatch = store.dispatch // Access dispatch from the store
-      dispatch(logout()) // Dispatch the logout action
+      const dispatch = store.dispatch
+      dispatch(logout())
     }
-
-    // Handle other response errors
     return Promise.reject(error)
   }
 )

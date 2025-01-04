@@ -1,140 +1,132 @@
-import {
-  Text,
-  View,
-  Card,
-  Heading,
-  Button,
-  ButtonText,
-  ButtonGroup,
-  ScrollView,
-  Box,
-  HStack,
-  ButtonIcon
-} from '@gluestack-ui/themed'
+import { Text, View } from '@gluestack-ui/themed'
 import { useCallback, useEffect, useState } from 'react'
-import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native'
-import {
-  AlertDialog,
-  AlertDialogBackdrop,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogCloseButton,
-  AlertDialogFooter,
-  AlertDialogBody,
-  Icon,
-  CloseIcon,
-  CheckCircleIcon
-} from '@gluestack-ui/themed'
-import {
-  useToast,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  Pressable,
-  ButtonSpinner,
-  VStack,
-  RefreshControl
-} from '@gluestack-ui/themed'
-
-import { Platform, TouchableOpacity, StyleSheet } from 'react-native'
-import { FontAwesome5 } from '@expo/vector-icons'
-
+import { TouchableOpacity, StyleSheet } from 'react-native'
 import { getUniqueId, getManufacturer } from 'react-native-device-info'
 import store from '../../../Store/store'
 import Locations from '../../Components/Location'
 import api from '@/src/Services/axiosConfig'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Dimensions } from 'react-native'
+import { FlatList } from '@gluestack-ui/themed'
+import {
+  BreakSvg,
+  CheckInSvg,
+  CheckOutSvg,
+  TotalDaySvg,
+  TotalHoursSvg
+} from '@/assets/Icons/SvgIcons'
+import SwipeButton from '@/src/Components/SwipeButton'
+import { useIsFocused, useNavigation } from '@react-navigation/native'
+import { ScrollView } from '@gluestack-ui/themed'
+import { RefreshControl } from 'react-native-gesture-handler'
+import { Animated } from 'react-native'
+const { width, height } = Dimensions.get('window')
 
-const Attendance = ({ onScroll }) => {
-  const navigation = useNavigation()
-
+const Attendance = () => {
   const state = store.getState()
 
-  const userData = state.user.userData.user
-  const user_id = state.user.userData.user.userid
   const focus = useIsFocused()
 
-  const [showAlertDialog, setShowAlertDialog] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(null)
+
+  const [dates, setDates] = useState([])
+
+  const navigation = useNavigation()
+
   const [refreshing, setRefreshing] = useState(false)
-  const [ShowalertStatus, SetShowalertStatus] = useState('')
+
   const [isLocationOpen, setisLocationOpen] = useState(false)
-  const [Location, setisLocation] = useState({ latitude: '', longitude: '' })
-  const [loader, setloader] = useState(false)
+
+  const [attendanceMood, setattendanceMood] = useState('')
+
+  const [deviceUniqueid, setdeviceUniqueid] = useState(null)
+
+  const userData = state.user.userData.user
+
+  const user_id = state.user.userData.user.userid
+
   const [attendanceTime, setattendanceTime] = useState({
     intime: '',
     outtime: '',
     totalHours: ''
   })
-  const [deviceUniqueid, setdeviceUniqueid] = useState(null)
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [elapsedTime, setElapsedTime] = useState(0)
 
-  const [currentTime, setCurrentTime] = useState(
-    new Date().toLocaleTimeString()
-  )
-
-
-
-  const toast = useToast()
-
-  // Timer-related functionality
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isTimerRunning) {
-        setElapsedTime(prev => prev + 1)
-      }
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [isTimerRunning])
-
-  const startTimer = () => setIsTimerRunning(true)
-  const stopTimer = () => setIsTimerRunning(false)
-
-
-  const formatTime = seconds => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${hrs.toString().padStart(2, '0')}h ${mins
-      .toString()
-      .padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`
-  }
+  const [AttendanceMsg, SetAttendanceMsg] = useState('')
 
   const DeviceUniqueid = async () => {
     await getUniqueId().then(uniqueId => setdeviceUniqueid(uniqueId))
   }
 
-  const ApiCall = async () => {
+  const handleLocation = async location => {
     try {
-      const response = await api.get(`attendance/attendanceFind/${user_id}`)
-      if (response.status === 200 && response.data) {
-        setattendanceTime(prevData => ({
-          ...prevData,
-          intime: response.data.formattedIntime,
-          outtime: response.data.formattedOuttime,
-          totalHours: response.data.exactWorkingHours || null
-        }))
+      if (location) {
+        attendanceMood === 'checkin'
+          ? CheckinConfirm(location)
+          : CheckOutConfirm(location)
       }
     } catch (error) {
       console.log(error)
     }
   }
 
-  const handleLocation = async location => {
-    setisLocation({
-      latitude: location.latitude,
-      longitude: location.longitude
-    })
-    setShowAlertDialog(true)
-    SetShowalertStatus(attendanceTime.intime === '' ? 'checkin' : 'checkout')
+  const generateWeekDates = () => {
+    const today = new Date()
+    const weekDates = []
+    let daysAdded = 0
+
+    for (let i = 0; daysAdded < 5; i--) {
+      const date = new Date()
+      date.setDate(today.getDate() + i)
+
+      if (date.getDay() === 0) {
+        continue // Skip Sundays
+      }
+
+      weekDates.push({
+        day: date.getDate().toString().padStart(2, '0'),
+        label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        formattedDate: date.toISOString().split('T')[0],
+        active: i === 0 // Default the first date as active
+      })
+
+      daysAdded++
+    }
+
+    setDates(weekDates.reverse())
   }
 
-  const attendancein = async () => {
-    await setisLocationOpen(true)
+  useEffect(() => {
+    if (focus) {
+      DeviceUniqueid()
+      fetchAttendance()
+      generateWeekDates()
+      const today = new Date()
+      const formattedDate = today.toISOString().split('T')[0]
+      setSelectedDate(formattedDate)
+    }
+  }, [focus])
+
+  const handleCheckIn = async () => {
+    try {
+      DeviceUniqueid()
+      setattendanceMood('checkin')
+      setisLocationOpen(true)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
-  const CheckinConfirm = async () => {
-    setloader(true)
+  const handleCheckOut = async () => {
+    try {
+      DeviceUniqueid()
+      setattendanceMood('checkout')
+      setisLocationOpen(true)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const CheckinConfirm = async location => {
     try {
       const currentDate = new Date()
       const intime = `${currentDate.getFullYear()}-${String(
@@ -146,47 +138,24 @@ const Attendance = ({ onScroll }) => {
         currentDate.getMinutes()
       ).padStart(2, '0')}:${String(currentDate.getSeconds()).padStart(2, '0')}`
 
-      const alldata = { ...Location, intime, uniqueid: deviceUniqueid }
+      const locations = {
+        latitude: location.latitude,
+        longitude: location.longitude
+      }
+      const alldata = { ...locations, intime, uniqueid: deviceUniqueid }
+
       const response = await api.post('attendance/checkIn', alldata)
 
       if (response.status === 201) {
-        setattendanceTime(prevData => ({
-          ...prevData,
-          intime: response.data.formattedIntime
-        }))
-        SetShowalertStatus('')
-        ApiCall()
-        setElapsedTime(0) // Reset elapsed time on check-in
-        startTimer() // Start the timer
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => (
-            <Toast action='success' nativeID={'toast-' + id}>
-              <Icon as={CheckCircleIcon} mt='$1' mr='$3' />
-              <VStack space='xs'>
-                <ToastTitle>Check In Success</ToastTitle>
-                <ToastDescription>
-                  Your Check In was successful!
-                </ToastDescription>
-              </VStack>
-              <Pressable mt='$1' onPress={() => toast.close(id)}>
-                <Icon as={CloseIcon} />
-              </Pressable>
-            </Toast>
-          )
-        })
+        fetchAttendance()
+        console.log('check in Confirmed')
       }
     } catch (err) {
       console.log(err)
-      setloader(false)
     }
   }
 
-  const attendanceout = async () => {
-    await setisLocationOpen(true)
-  }
-
-  const CheckOutConfirm = async () => {
+  const CheckOutConfirm = async location => {
     try {
       const currentDate = new Date()
       const Outtime = `${currentDate.getFullYear()}-${String(
@@ -198,438 +167,627 @@ const Attendance = ({ onScroll }) => {
         currentDate.getMinutes()
       ).padStart(2, '0')}:${String(currentDate.getSeconds()).padStart(2, '0')}`
 
-      const alldata = { ...Location, Outtime, uniqueid: deviceUniqueid }
+      const locations = {
+        latitude: location.latitude,
+        longitude: location.longitude
+      }
+      const alldata = { ...locations, Outtime, uniqueid: deviceUniqueid }
       const response = await api.patch(
         `attendance/checkout/${user_id}`,
         alldata
       )
-
       if (response.status === 200) {
-        SetShowalertStatus('')
-        ApiCall()
-        stopTimer()
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => (
-            <Toast action='success' nativeID={'toast-' + id}>
-              <Icon as={CheckCircleIcon} mt='$1' mr='$3' />
-              <VStack space='xs'>
-                <ToastTitle>Check Out Success</ToastTitle>
-                <ToastDescription>
-                  Your Check Out was successful!
-                </ToastDescription>
-              </VStack>
-              <Pressable mt='$1' onPress={() => toast.close(id)}>
-                <Icon as={CloseIcon} />
-              </Pressable>
-            </Toast>
-          )
-        })
+        fetchAttendance()
+        console.log('check out Confirmed')
       }
     } catch (err) {
       console.log(err)
     }
   }
 
+  const fetchAttendance = async date => {
+    const searchdate = date ? date : new Date()
+    SetAttendanceMsg('')
+    try {
+      const response = await api.get(
+        `attendance/attendanceFind/${user_id}/${searchdate}`
+      )
+
+      if (response.status === 200 && response.data.status === 'Present') {
+        setattendanceTime(prevData => ({
+          ...prevData,
+          intime: response.data.formattedIntime,
+          outtime: response.data.formattedOuttime,
+          totalHours: response.data.exactWorkingHours || null
+        }))
+
+        return
+      }
+
+      if (response.status === 200 && response.data.status === 'Absent') {
+        setattendanceTime(prevData => ({
+          ...prevData,
+          intime: response.data.formattedIntime,
+          outtime: response.data.formattedOuttime,
+          totalHours: response.data.exactWorkingHours || null
+        }))
+        SetAttendanceMsg(response.data.status)
+        return
+      }
+      if (response.status === 200 && response.data.status === '') {
+        setattendanceTime(prevData => ({
+          ...prevData,
+          intime: response.data.formattedIntime,
+          outtime: response.data.formattedOuttime,
+          totalHours: response.data.exactWorkingHours || null
+        }))
+        SetAttendanceMsg('')
+        return
+      }
+    } catch (error) {
+      console.log(error)
+      setattendanceTime(current => ({
+        ...current,
+        intime: '',
+        outtime: '',
+        totalHours: ''
+      }))
+    }
+  }
+
+
   const onRefresh = useCallback(() => {
+    const today = new Date()
+    const formattedDate = today.toISOString().split('T')[0]
+    setSelectedDate(formattedDate)
     setRefreshing(true)
-    ApiCall()
+    fetchAttendance(formattedDate)
     setTimeout(() => {
       setRefreshing(false)
     }, 1000)
   }, [])
 
-  useEffect(() => {
-    if (focus) {
-      DeviceUniqueid()
-      ApiCall()
+  const splitDateTime = datetime => {
+    if (!datetime || typeof datetime !== 'string') {
+      return null
     }
-  }, [focus])
 
-  const onNavigateAway = () => {
-    stopTimer() // Stop the timer when the user navigates away
+    const lastSpaceIndex = datetime.lastIndexOf(' ')
+    const date = datetime.slice(0, lastSpaceIndex - 5)
+    const time = datetime.slice(lastSpaceIndex - 5)
+    return { date, time }
   }
 
-  const onNavigateBack = () => {
-    startTimer() // Start the timer again when the user comes back
+  function dateFormatted (date) {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' }
+    return new Intl.DateTimeFormat('en-US', options).format(new Date(date))
   }
 
-  useEffect(() => {
-    navigation.addListener('focus', onNavigateBack)
-    navigation.addListener('blur', onNavigateAway)
-
-    return () => {
-      navigation.removeListener('focus', onNavigateBack)
-      navigation.removeListener('blur', onNavigateAway)
-    }
-  }, [navigation])
 
   return (
     <>
       <ScrollView
-        left={'auto'}
-        style={{ backgroundColor: '#F4F9FD' }}
-        onScroll={onScroll}
+        flex={1}
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View style={styles.cardWrapper}>
-          <View
-            p={'$3'}
-            mt={'$3'}
-            mb={'$0'}
-            pb={'$0'}
-            style={{ display: attendanceTime.intime === '' ? 'flex' : 'none' }}
+        <View style={styles.container}>
+          <LinearGradient
+            colors={['#F4F9FD', '#F4F9FD']}
+            style={styles.gradient}
           >
-            <Heading
-              size='lg'
-              textAlign='center'
-              borderRadius={'$lg'}
-              opacity={'$95'}
-            >
-              <Text
-                color='$black'
-                fontFamily='Inter_700Bold'
-                fontSize={'$xl'}
-                isTruncated
-              >
-                Have Nice Day {''}
-                <Text fontSize={'$xl'} textTransform='capitalize'>
-                  "{userData.username}"
-                </Text>
-              </Text>
-            </Heading>
-          </View>
-
-          <Box display='flex' style={{ flex: 1 }} width={'$full'}>
-            <HStack
-              p={'$2'}
-              display='flex'
-              flexWrap='wrap'
-              alignItems='center'
-              justifyContent='center'
-            >
-              <View
-                w={'$full'}
-                $lg-w={'$80'}
-                mt={'$4'}
-                p={'$6'}
-                borderRadius={'$lg'}
-                borderWidth={'$2'}
-                borderColor='$black'
-                style={{ backgroundColor: '#2F2F2F' }}
-              >
-                <Text
-                  textAlign='center'
-                  color='$light300'
-                  fontSize={'$3xl'}
-                  fontFamily='Inter_500Medium'
-                  my={'$2'}
-                >
-                  {new Date().toUTCString().slice(0, 17)}
-                </Text>
-
-                <Text
-                  textAlign='center'
-                  color='$light500'
-                  fontSize={'$2xl'}
-                  fontFamily='Inter_500Medium'
-                  my={'$2'}
-                >
-                  {currentTime}
-                </Text>
-              </View>
-            </HStack>
-          </Box>
-
-          <Card m={'$2.5'} my={'$0'} bg='$orange400'>
-            <View
-              display='flex'
-              flexDirection='row'
-              justifyContent='center'
-              gap={'$2'}
-            >
-              <Text
-                style={{ fontSize: 16, fontFamily: 'MonaSans_Bold' }}
-                color='black'
-                isTruncated
-              >
-                Total Hours :
-              </Text>
-
-              <Text
-                style={{ fontSize: 16, fontFamily: 'MonaSans_Bold' }}
-                color='$light500'
-                textTransform='capitalize'
-                isTruncated
-              >
-                {attendanceTime.totalHours}
-              </Text>
-            </View>
-          </Card>
-
-          <View display='flex' p={'$2'} gap={'$1'}>
-            <View
-              display='flex'
-              flexDirection='row'
-              p={'$0'}
-              gap={'$2'}
-              alignItems='center'
-              justifyContent='center'
-              marginStart={'auto'}
-              marginEnd={'auto'}
-              mt={'$5'}
-              $web-alignItems='center'
-              $web-justifyContent='center'
-            >
-              <Card w={'$48'} $web-w={'$64'} bg='$green400'>
-                <View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 12
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontFamily: 'MonaSans_400Regular'
-                      }}
-                      color='black'
-                    >
-                      Check In
-                    </Text>
-                    <FontAwesome5 name='cloud-sun' size={24} color='black' />
-                  </View>
-
-                  <Text
-                    fontFamily='Inter_500Medium'
-                    isTruncated={true}
-                    numberOfLines={1}
-                    mt={'$4'}
-                    style={{ fontSize: 15 }}
-                    color='black'
-                  >
-                    {attendanceTime.intime}
-                  </Text>
-                </View>
-              </Card>
-
-              <Card w={'$48'} $web-w={'$64'} bg='$error300'>
-                <View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 12
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontFamily: 'MonaSans_400Regular'
-                      }}
-                      color='black'
-                    >
-                      Check Out
-                    </Text>
-                    <FontAwesome5 name='moon' size={20} color='black' />
-                  </View>
-
-                  <Text
-                    style={{ fontFamily: 'Inter_500Medium', fontSize: 15 }}
-                    numberOfLines={1}
-                    mt={'$4'}
-                    color='black'
-                  >
-                    {attendanceTime.outtime}
-                  </Text>
-                </View>
-              </Card>
-            </View>
-
-            <View
-              style={{
-                display:
-                  attendanceTime.outtime !== null &&
-                  attendanceTime.outtime !== ''
-                    ? 'none'
-                    : 'flex'
-              }}
-              w={'$full'}
-              flexDirection='row'
-              mt={'$5'}
-            >
-              <View
-                style={[
-                  styles.container,
-                  {
-                    backgroundColor:
-                      attendanceTime.intime === '' ? '#b1f0c2' : '#e38686'
-                  }
-                ]}
-                alignItems='center'
-                marginStart={'auto'}
-                marginEnd={'auto'}
-              >
+            <FlatList
+              data={dates}
+              horizontal
+              keyExtractor={(item, index) => index.toString()}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={[
-                    styles.button,
-                    {
-                      display:
-                        attendanceTime.outtime !== null &&
-                        attendanceTime.outtime !== ''
-                          ? 'none'
-                          : 'flex',
-                      backgroundColor:
-                        attendanceTime.intime === '' ? '#55d978' : '#e34949'
-                    }
-                  ]}
-                  disabled={
-                    attendanceTime.outtime !== null &&
-                    attendanceTime.outtime !== ''
-                  }
-                  onPress={() =>
-                    attendanceTime.intime === ''
-                      ? attendancein()
-                      : attendanceout()
-                  }
+                  onPress={() => {
+                    console.log(item.formattedDate)
+
+                    setSelectedDate(item.formattedDate)
+                    fetchAttendance(item.formattedDate)
+                  }}
                 >
-                  <View>
+                  <View
+                    style={[
+                      styles.dateBox,
+                      item.formattedDate === selectedDate &&
+                        styles.activeDateBox
+                    ]}
+                  >
                     <Text
-                      fontFamily='Inter_500Medium'
-                      p={'$1'}
-                      color={attendanceTime.intime === '' ? '$black' : '$white'}
+                      style={[
+                        styles.dateText,
+                        item.formattedDate === selectedDate &&
+                          styles.activeDateText
+                      ]}
                     >
-                      {attendanceTime.intime === '' ? 'Check In' : 'Check Out'}
+                      {item.day}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.dateLabel,
+                        item.formattedDate === selectedDate &&
+                          styles.activeDateLabel
+                      ]}
+                    >
+                      {item.label}
                     </Text>
                   </View>
                 </TouchableOpacity>
+              )}
+            />
+
+            <Text style={styles.sectionTitle} mt='$2'>
+              Today Attendance
+            </Text>
+
+            <View style={styles.attendanceCardWrapper}>
+              <View style={styles.attendanceCard}>
+                <View display='flex' flexDirection='row'>
+                  <View
+                    h='$7'
+                    w='$7'
+                    bg='$blue100'
+                    alignItems='center'
+                    justifyContent='center'
+                    borderRadius={'$lg'}
+                  >
+                    <CheckInSvg />
+                  </View>
+
+                  <View my='$1' mx='$2'>
+                    <Text style={styles.attendanceLabel}>Check In</Text>
+                  </View>
+                </View>
+                <Text style={styles.attendanceTime}>09:30 am</Text>
+                <Text style={styles.attendanceStatus}>On Time</Text>
+              </View>
+
+              <View style={styles.attendanceCard}>
+                <View display='flex' flexDirection='row'>
+                  <View
+                    h='$7'
+                    w='$7'
+                    bg='$blue100'
+                    alignItems='center'
+                    justifyContent='center'
+                    borderRadius={'$lg'}
+                  >
+                    <CheckOutSvg />
+                  </View>
+
+                  <View my='$1' mx='$2'>
+                    <Text style={styles.attendanceLabel}>Check Out</Text>
+                  </View>
+                </View>
+                <Text style={styles.attendanceTime}>06:30 pm</Text>
+                <Text style={styles.attendanceStatus}>Go Home</Text>
+              </View>
+
+              <View style={styles.attendanceCard}>
+                <View display='flex' flexDirection='row'>
+                  <View
+                    h='$7'
+                    w='$7'
+                    bg='$blue100'
+                    alignItems='center'
+                    justifyContent='center'
+                    borderRadius={'$lg'}
+                  >
+                    <BreakSvg />
+                  </View>
+
+                  <View my='$1' mx='$2'>
+                    <Text style={styles.attendanceLabel}>Break Time</Text>
+                  </View>
+                </View>
+                <Text style={styles.attendanceTime}>00:30 min</Text>
+                <Text style={styles.attendanceStatus}>Avg Time 30 min</Text>
+              </View>
+
+              <View style={styles.attendanceCard}>
+                <View display='flex' flexDirection='row'>
+                  <View
+                    h='$7'
+                    w='$7'
+                    bg='$blue100'
+                    alignItems='center'
+                    justifyContent='center'
+                    borderRadius={'$lg'}
+                  >
+                    <TotalDaySvg />
+                  </View>
+
+                  <View my='$1' mx='$2'>
+                    <Text style={styles.attendanceLabel}>Total Days</Text>
+                  </View>
+                </View>
+                <Text style={styles.attendanceTime}>28 Days</Text>
+                <Text style={styles.attendanceStatus}>Working Days</Text>
               </View>
             </View>
 
-            {attendanceTime.outtime !== null && attendanceTime.outtime !== '' && (
-              <Text
-                style={{
-                  display:
-                    attendanceTime.outtime !== null &&
-                    attendanceTime.outtime !== ''
-                      ? 'flex'
-                      : 'none'
-                }}
-                fontFamily='MonaSans_400Regular'
-                textAlign='center'
-                fontSize={'$lg'}
-                mt={'$4'}
-                $lg-alignItems='center'
-                $lg-justifyContent='center'
-                color='$green700'
+            <View style={styles.activityHeader}>
+              <Text style={styles.sectionTitle}>Your Activity</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('AttendaceHistory')}
               >
-                Your Today Attendance As Done
-              </Text>
+                <Text style={styles.viewAll}>View All</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.activityCard}>
+              <View style={styles.activityDetails}>
+                <View display='flex' flexDirection='row'>
+                  <View
+                    h='$10'
+                    w='$10'
+                    bg='$blue100'
+                    alignItems='center'
+                    justifyContent='center'
+                    borderRadius={'$lg'}
+                  >
+                    <CheckInSvg />
+                  </View>
+
+                  <View mx='$2'>
+                    <Text
+                      style={{
+                        fontFamily: 'NunitoSans_Bold',
+                        color: '#000'
+                      }}
+                    >
+                      Check In
+                    </Text>
+                    <Text style={styles.activityDate}>
+                      {dateFormatted(selectedDate)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View>
+                  <Text
+                    style={{
+                      fontFamily: 'NunitoSans_Bold',
+                      color: '#000'
+                    }}
+                  >
+                    {attendanceTime.intime &&
+                      splitDateTime(attendanceTime.intime).time}
+                  </Text>
+
+                  <Text style={styles.activityDate}>On Time</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.activityCard}>
+              <View style={styles.activityDetails}>
+                <View display='flex' flexDirection='row'>
+                  <View
+                    h='$10'
+                    w='$10'
+                    bg='$blue100'
+                    alignItems='center'
+                    justifyContent='center'
+                    borderRadius={'$lg'}
+                  >
+                    <CheckOutSvg />
+                  </View>
+
+                  <View mx='$2'>
+                    <Text
+                      style={{
+                        fontFamily: 'NunitoSans_Bold',
+                        color: '#000'
+                      }}
+                    >
+                      Check Out
+                    </Text>
+                    <Text style={styles.activityDate}>
+                      {dateFormatted(selectedDate)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View>
+                  <Text
+                    style={{
+                      fontFamily: 'NunitoSans_Bold',
+                      color: '#000'
+                    }}
+                  >
+                    {attendanceTime.outtime &&
+                      splitDateTime(attendanceTime.outtime).time}
+                  </Text>
+
+                  <Text style={styles.attendanceStatus}>On Time</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.activityCard}>
+              <View style={styles.activityDetails}>
+                <View display='flex' flexDirection='row'>
+                  <View
+                    h='$10'
+                    w='$10'
+                    bg='$blue100'
+                    alignItems='center'
+                    justifyContent='center'
+                    borderRadius={'$lg'}
+                  >
+                    <TotalHoursSvg />
+                  </View>
+
+                  <View mx='$2'>
+                    <Text
+                      style={{
+                        fontFamily: 'NunitoSans_Bold',
+                        color: '#000'
+                      }}
+                    >
+                      Total Hours
+                    </Text>
+                    <Text style={styles.activityDate}>
+                      {dateFormatted(selectedDate)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View>
+                  <Text
+                    style={{
+                      fontFamily: 'NunitoSans_Bold',
+                      color: '#000'
+                    }}
+                  >
+                    {attendanceTime.totalHours}
+                  </Text>
+
+                  <Text style={styles.attendanceStatus}>On Time</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.swipeButtonWrapper}>
+              <View
+                display={
+                  attendanceTime.intime === '' && AttendanceMsg === ''
+                    ? 'flex'
+                    : 'none'
+                }
+              >
+                <SwipeButton
+                  title='Swipe to Check In'
+                  backgroundColor='#4285F4'
+                  onComplete={handleCheckIn}
+                />
+              </View>
+              <View
+                display={
+                  attendanceTime.intime !== '' &&
+                  attendanceTime.outtime === 'null'
+                    ? 'flex'
+                    : 'none'
+                }
+              >
+                <SwipeButton
+                  title='Swipe to Check Out'
+                  backgroundColor='#cb202d'
+                  onComplete={handleCheckOut}
+                />
+              </View>
+            </View>
+
+            {AttendanceMsg !== '' && (
+              <View style={styles.errorContainer}>
+                <Text
+                  fontFamily='NunitoSans_Bold'
+                  color='$white'
+                  textAlign='center'
+                >
+                  {`Absent This ${dateFormatted(selectedDate)}`}
+                </Text>
+              </View>
             )}
 
-            <AlertDialog
-              isOpen={showAlertDialog}
-              onClose={() => {
-                setShowAlertDialog(false)
-              }}
-            >
-              <AlertDialogBackdrop />
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <Heading size='lg' fontFamily='Inter_700Bold'>
-                    {ShowalertStatus === 'checkin' ? 'Check In' : 'Check Out'}
-                  </Heading>
-                  <AlertDialogCloseButton>
-                    <Icon as={CloseIcon} />
-                  </AlertDialogCloseButton>
-                </AlertDialogHeader>
-                <AlertDialogBody>
-                  <Text size='sm' fontFamily='Inter_700Bold'>
-                    {ShowalertStatus === 'checkin'
-                      ? 'Are You Sure Check In Attendance'
-                      : 'Are You Sure Check Out Attendance'}
-                  </Text>
-                </AlertDialogBody>
-                <AlertDialogFooter>
-                  <ButtonGroup space='lg'>
-                    <Button
-                      variant='outline'
-                      action='secondary'
-                      onPress={() => {
-                        setShowAlertDialog(false)
-                      }}
-                    >
-                      <ButtonText fontFamily='Inter_400Regular'>
-                        Cancel
-                      </ButtonText>
-                    </Button>
-                    <Button
-                      action='positive'
-                      onPress={() => {
-                        ShowalertStatus === 'checkin'
-                          ? CheckinConfirm()
-                          : CheckOutConfirm()
-                        setShowAlertDialog(false)
-                      }}
-                    >
-                      <ButtonText fontFamily='Inter_900Black'>
-                        {ShowalertStatus === 'checkin'
-                          ? 'Check In'
-                          : 'Check Out'}
-                      </ButtonText>
-                    </Button>
-                  </ButtonGroup>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            <View
-              bg='$yellow100'
-              w={'$full'}
-              display={isLocationOpen ? 'flex' : 'none'}
-            >
-              <Locations
-                isOpen={isLocationOpen}
-                locationGet={handleLocation}
-                onClose={() => setisLocationOpen(false)}
-              />
-            </View>
-          </View>
+            {attendanceTime.intime !== '' && attendanceTime.outtime !== 'null' && (
+              <View style={styles.successContainer} mb='$10'>
+                <Text
+                  fontFamily='NunitoSans_Bold'
+                  color='$white'
+                  textAlign='center'
+                >
+                  {`You Have Done Ur ${dateFormatted(selectedDate)} Attendance`}
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
         </View>
       </ScrollView>
+      
+      <View
+        bg='$yellow100'
+        w={'$full'}
+        display={isLocationOpen ? 'flex' : 'none'}
+      >
+        <Locations
+          isOpen={isLocationOpen}
+          locationGet={handleLocation}
+          onClose={() => setisLocationOpen(false)}
+        />
+      </View>
     </>
   )
 }
 
 const styles = StyleSheet.create({
-  cardWrapper: {
-    paddingHorizontal: 5,
-    paddingVertical: 10
-  },
   container: {
-    height: 120,
-    width: 120,
-    borderRadius: 64,
-    alignItems: 'center',
-    justifyContent: 'center'
+    flex: 1
   },
-  button: {
-    borderRadius: 64,
+  gradient: {
+    flex: 1,
+    paddingHorizontal: 10
+  },
+  dateBox: {
     alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    marginHorizontal: 2,
+    borderRadius: 10,
+    backgroundColor: '#FFF'
+  },
+  activeDateBox: {
+    backgroundColor: '#007AFF'
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000'
+  },
+  activeDateText: {
+    color: '#FFF'
+  },
+  dateLabel: {
+    fontSize: 14,
+    color: '#8E8E8E'
+  },
+  activeDateLabel: {
+    color: '#FFF'
+  },
+  sectionTitle: {
+    fontSize: 18,
+    marginVertical: 5,
+    color: '#000',
+    fontFamily: 'NunitoSans_Bold'
+  },
+  attendanceCardWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+    gap: 0
+  },
+  attendanceCard: {
+    width: width * 0.45,
+    height: height * 0.13,
+    padding: 16,
+    marginVertical: 5,
+    borderRadius: 14,
+    backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2
+  },
+  attendanceLabel: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    fontFamily: 'NunitoSans_Regular'
+  },
+  attendanceTime: {
+    fontSize: 18,
+    fontFamily: 'NunitoSans_Bold',
+    marginVertical: 1,
+    color: '#000'
+  },
+  attendanceStatus: {
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'NunitoSans_Regular'
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  viewAll: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontFamily: 'NunitoSans_Regular'
+  },
+  activityCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2
+  },
+  activityTitle: {
+    fontSize: 18,
+    fontFamily: 'NunitoSans_Bold',
+    color: '#000'
+  },
+  activityDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 5
+  },
+  activityTime: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    fontFamily: 'NunitoSans_Regular'
+  },
+  activityDate: {
+    fontSize: 14,
+    color: '#8E8E8E',
+    fontFamily: 'NunitoSans_Regular'
+  },
+  activityStatus: {
+    fontSize: 12,
+    color: '#8E8E8E',
+    fontFamily: 'NunitoSans_Regular'
+  },
+  swipeButtonWrapper: {
+    paddingHorizontal: 10,
+    zIndex: 1,
+    alignItems: 'center'
+  },
+  swipeButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10
+  },
+  swipeButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: 'NunitoSans_Bold'
+  },
+  errorContainer: {
     justifyContent: 'center',
-    transition: 'background-color 0.3s ease',
-    height: 90,
-    width: 90
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#F44336',
+    borderRadius: 8,
+    marginHorizontal: 20
   },
-  buttonPressed: {
-    backgroundColor: '#FF0000'
+  errorText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    fontFamily: 'NunitoSans_Bold'
+  },
+  successContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#4BB543',
+    borderRadius: 8,
+    marginHorizontal: 20
   }
 })
 

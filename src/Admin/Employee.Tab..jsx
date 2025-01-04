@@ -618,6 +618,7 @@ const EmployeeTab = () => {
                               <SelectItem
                                 label={data.DesginationName}
                                 value={data.Des_id}
+                                key={index}
                               />
                             ))}
                         </SelectContent>
@@ -671,6 +672,7 @@ const EmployeeTab = () => {
                               <SelectItem
                                 label={data.CompanyName}
                                 value={data.cm_id}
+                                key={index}
                               />
                             ))}
                         </SelectContent>

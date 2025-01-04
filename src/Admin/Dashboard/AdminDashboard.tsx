@@ -287,6 +287,7 @@ const AdminDashboard = () => {
                                                                     source={{
                                                                         uri: `data:image/png;base64,${item.profile}`
                                                                     }}
+                                                                    alt={'User Avatar'} // Optional alt text to suppress the warning
                                                                 />
                                                             </Avatar>
                                                         </TouchableOpacity>
@@ -361,7 +362,7 @@ const AdminDashboard = () => {
                                     {absentCardData.length > 0 ? (
                                         absentCardData.map((item, index) => (
                                             <TouchableOpacity
-                                                key={item.id} // Use a unique key for each item
+                                                key={index} // Use a unique key for each item
                                                 //onPress={() => handlePartynameclick(item.id)}
                                                 style={{
                                                     width: '45%',
@@ -466,7 +467,7 @@ const AdminDashboard = () => {
                                     {latePunchCardData.length > 0 ? (
                                         latePunchCardData.map((item, index) => (
                                             <TouchableOpacity
-                                                key={item.id} // Use a unique key for each item
+                                                key={index} // Use a unique key for each item
                                                 //onPress={() => handlePartynameclick(item.id)}
                                                 style={{
                                                     width: '45%',
@@ -571,7 +572,7 @@ const AdminDashboard = () => {
                                     {halfDayCardData.length > 0 ? (
                                         halfDayCardData.map((item, index) => (
                                             <TouchableOpacity
-                                                key={item.id} // Use a unique key for each item
+                                                key={index} // Use a unique key for each item
                                                 //onPress={() => handlePartynameclick(item.id)}
                                                 style={{
                                                     width: '45%',

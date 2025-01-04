@@ -17,7 +17,7 @@ import { AvatarBadge } from '@gluestack-ui/themed'
 import { View, Text } from '@gluestack-ui/themed'
 import { useIsFocused, useNavigation } from '@react-navigation/native'
 import React, { useCallback, useEffect, useState } from 'react'
-import { Alert, StyleSheet } from 'react-native'
+import { Alert, Dimensions, StyleSheet } from 'react-native'
 import { TouchableOpacity } from 'react-native'
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { RefreshControl } from 'react-native-gesture-handler'
@@ -34,12 +34,10 @@ import { TrashIcon, EditIcon } from '@gluestack-ui/themed'
 import api from '@/src/Services/axiosConfig'
 import Spinner from 'react-native-loading-spinner-overlay'
 import ImagePreview from '@/src/Components/ImagePreview'
+import DraggableCard from './DraggableCard'
+import TaskEditForm from '../TaskForm/TaskEditForm'
 
-const DashBoardCards = ({ user_id, isRefresh }) => {
-
-
-  console.log(isRefresh, 'isRefresh   data ===================================')
-
+const DashBoardCards = ({ user_id, isRefresh, setisRefresh }) => {
   const nav = useNavigation()
 
   const focus = useIsFocused()
@@ -61,6 +59,12 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
   const [TableData, SetTableData] = useState([])
 
   const [TaskData, SetTaskData] = useState([])
+
+  const [isEdittaskData, setisEdittaskData] = useState({
+    isopen: false,
+    taskid: null,
+    taskData: {}
+  })
 
   const handlePartynameclick = async item => {
     const Props = {
@@ -115,6 +119,28 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
     }
   }
 
+  const handleEditTask = (id, taskname, index) => {
+    try {
+      // Retrieve task data from the index
+      const taskToEdit = TaskData[index]
+
+      // Check if the task exists
+      if (!taskToEdit) {
+        console.error(`Task not found at index ${index}`)
+        return
+      }
+
+      setisEdittaskData(current => ({
+        ...current,
+        taskid: id,
+        isopen: true,
+        taskData: taskToEdit
+      }))
+    } catch (error) {
+      console.error('Error handling task edit:', error)
+    }
+  }
+
   const fetchData = async () => {
     setloader(true)
     try {
@@ -157,6 +183,7 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
 
   const [ProfileViewImgae, setProfileViewImgae] = useState(null)
 
+  const { width, height } = Dimensions.get('window')
   return (
     <>
       <ScrollView
@@ -167,32 +194,27 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
       >
         <View>
           {/* Cards Section */}
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              backgroundColor: '#A0A8B'
-            }}
-            $lg-m='$10'
-            $lg-gap='$20'
-            gap={10}
-            mt={'$2'}
-            $web-paddingTop='$0'
-            $web-marginTop='$0'
+
+          <Card
+            variant='elevated'
+            rounded={'$2xl'}
+            style={[
+              styles.card,
+              {
+                flexWrap: 'wrap',
+                flexDirection: 'row',
+                alignItems: 'center'
+              }
+            ]}
+            justifyContent={'space-between'}
           >
             {/* Card 1 */}
-            <View h={'$40'}>
+            <View style={[styles.cardItem, { flex: 1, maxWidth: width * 0.6 }]}>
               <LinearGradient
                 colors={['#fbc2eb', '#a6c1ee']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={{
-                  flex: 1,
-                  borderRadius: 20,
-                  padding: 20
-                }}
+                style={styles.gradientCard}
               >
                 <View
                   display='flex'
@@ -248,11 +270,10 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
                   <View
                     $web-pt={'$1'}
                     $android-pt={'$6'}
-                    paddingStart={'$2'}
                     w={'auto'}
                   >
                     <AnimatedCircularProgress
-                      size={Platform.OS === 'android' ? 60 : 90}
+                      size={Platform.OS === 'android' ? 55 : 50}
                       width={5}
                       style={{ fontFamily: 'MonaSans_400Regular' }}
                       backgroundWidth={15}
@@ -272,16 +293,12 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
             </View>
 
             {/* Second Card */}
-            <View h={'$40'}>
+            <View style={[styles.cardItem, { flex: 1, maxWidth: width * 0.6 }]}>
               <LinearGradient
                 colors={['#ff8a00', '#e52e71']} // Orange to pink gradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={{
-                  flex: 1,
-                  borderRadius: 20,
-                  padding: 20
-                }}
+                style={styles.gradientCard}
               >
                 <View
                   display='flex'
@@ -337,11 +354,10 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
                   <View
                     $web-pt={'$1'}
                     $android-pt={'$6'}
-                    paddingStart={'$2'}
                     w={'auto'}
                   >
                     <AnimatedCircularProgress
-                      size={Platform.OS === 'android' ? 60 : 90}
+                      size={Platform.OS === 'android' ? 55 : 90}
                       width={5}
                       style={{ fontFamily: 'MonaSans_400Regular' }}
                       backgroundWidth={15}
@@ -359,9 +375,9 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
                 </View>
               </LinearGradient>
             </View>
-          </View>
-
+          </Card>
           {/* Followup Cards Section */}
+
           <Card
             variant='elevated'
             mx={'$2'}
@@ -470,214 +486,229 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
           <View>
             {TaskData.length > 0 ? (
               TaskData.map((item, index) => (
-                <Card
-                  key={index} // Always include a unique key for items in a list
-                  variant='elevated'
-                  mx='$2'
-                  my='$3'
-                  rounded='$2xl'
-                  style={styles.card}
-                >
-                  <View
-                    flexDirection='row'
-                    gap='$3'
-                    justifyContent='space-between'
+                <DraggableCard index={index}>
+                  <Card
+                    key={index} // Always include a unique key for items in a list
+                    variant='elevated'
+                    mx='$2'
+                    my='$3'
+                    rounded='$2xl'
+                    style={styles.card}
                   >
-                    <View alignItems='flex-start'>
-                      <Text fontFamily='NunitoSans_Bold' fontSize='$xl'>
-                        Task
-                      </Text>
-                    </View>
+                    <View
+                      flexDirection='row'
+                      gap='$3'
+                      justifyContent='space-between'
+                    >
+                      <View alignItems='flex-start'>
+                        <Text fontFamily='NunitoSans_Bold' fontSize='$xl'>
+                          Task
+                        </Text>
+                      </View>
 
-                    <View alignItems='flex-start'>
-                      <View>
-                        <Menu
-                          placement='bottom'
-                          offset={2}
-                          trigger={({ ...triggerProps }) => {
-                            return (
-                              <TouchableOpacity {...triggerProps}>
-                                <Entypo
-                                  name='dots-three-vertical'
-                                  size={24}
-                                  color='black'
-                                />
-                              </TouchableOpacity>
-                            )
-                          }}
-                          style={{ borderRadius: 10 }}
-                        >
-                          <MenuItem key={'Edit Task'} textValue='Edit Task'>
-                            <Icon as={EditIcon} size='sm' mr={'$2'} />
-                            <MenuItemLabel
-                              size='sm'
-                              fontFamily='MonaSans_Black'
-                            >
-                              Edit Task
-                            </MenuItemLabel>
-                          </MenuItem>
-
-                          <MenuSeparator />
-
-                          <MenuItem
-                            key={'Delete Task'}
-                            textValue='  Delete Task'
-                            onPress={() =>
-                              handleDeleteTask(item.taskid, item.Taskname)
-                            }
+                      <View alignItems='flex-start'>
+                        <View>
+                          <Menu
+                            placement='bottom'
+                            offset={2}
+                            trigger={({ ...triggerProps }) => {
+                              return (
+                                <TouchableOpacity {...triggerProps}>
+                                  <Entypo
+                                    name='dots-three-vertical'
+                                    size={24}
+                                    color='black'
+                                  />
+                                </TouchableOpacity>
+                              )
+                            }}
+                            style={{ borderRadius: 10 }}
                           >
-                            <Icon as={TrashIcon} size='sm' mr={'$2'} />
-                            <MenuItemLabel
-                              size='sm'
-                              fontFamily='MonaSans_Black'
+                            <MenuItem
+                              key={'Edit Task'}
+                              textValue='Edit Task'
+                              onPress={() =>
+                                handleEditTask(
+                                  item.taskid,
+                                  item.Taskname,
+                                  index
+                                )
+                              }
                             >
-                              Delete Task
-                            </MenuItemLabel>
-                          </MenuItem>
-                        </Menu>
+                              <Icon as={EditIcon} size='sm' mr={'$2'} />
+                              <MenuItemLabel
+                                size='sm'
+                                fontFamily='MonaSans_Black'
+                              >
+                                Edit Task
+                              </MenuItemLabel>
+                            </MenuItem>
+
+                            <MenuSeparator />
+
+                            <MenuItem
+                              key={'Delete Task'}
+                              textValue='Delete Task'
+                              onPress={() =>
+                                handleDeleteTask(item.taskid, item.Taskname)
+                              }
+                            >
+                              <Icon as={TrashIcon} size='sm' mr={'$2'} />
+                              <MenuItemLabel
+                                size='sm'
+                                fontFamily='MonaSans_Black'
+                              >
+                                Delete Task
+                              </MenuItemLabel>
+                            </MenuItem>
+                          </Menu>
+                        </View>
                       </View>
                     </View>
-                  </View>
 
-                  <View my='$5'>
-                    <VStack space='4xl'>
-                      <HStack
-                        space='md'
-                        justifyContent='space-between'
-                        alignItems='center'
-                      >
-                        <HStack space='md'>
-                          {item.taskprofile ? (
-                            <TouchableOpacity
-                              onPress={() => {
-                                setProfileViewImgae(item.taskprofile)
-                                setisImageViewer(true)
-                              }}
-                            >
-                              <Image
-                                source={{
-                                  uri: `data:image/jpeg;base64,${item.taskprofile}`
+                    <View my='$5'>
+                      <VStack space='4xl'>
+                        <HStack
+                          space='md'
+                          justifyContent='space-between'
+                          alignItems='center'
+                        >
+                          <HStack space='md'>
+                            {item.taskprofile ? (
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setProfileViewImgae(item.taskprofile)
+                                  setisImageViewer(true)
                                 }}
-                                alt='task-images'
-                                style={{
-                                  height: 60,
-                                  width: 60,
-                                  borderRadius: 14
-                                }}
-                              />
-                            </TouchableOpacity>
-                          ) : (
-                            <Avatar
-                              className='bg-indigo-600'
-                              bg={ColorCodes(item.Taskname)}
-                            >
-                              <AvatarFallbackText className='text-white'>
+                              >
+                                <Image
+                                  source={{
+                                    uri: `data:image/jpeg;base64,${item.taskprofile}`
+                                  }}
+                                  alt='task-images'
+                                  style={{
+                                    height: 60,
+                                    width: 60,
+                                    borderRadius: 14
+                                  }}
+                                />
+                              </TouchableOpacity>
+                            ) : (
+                              <Avatar
+                                className='bg-indigo-600'
+                                bg={ColorCodes(item.Taskname)}
+                              >
+                                <AvatarFallbackText className='text-white'>
+                                  {item.Taskname}
+                                </AvatarFallbackText>
+                              </Avatar>
+                            )}
+
+                            <VStack>
+                              <Text
+                                size='sm'
+                                fontFamily='NunitoSans_Regular'
+                                style={{ color: '#91929E', fontSize: 14 }}
+                              >
+                                TSN000{index + 1234}
+                              </Text>
+                              <Text
+                                my='$2'
+                                size='sm'
+                                style={{ color: '#0A1629', fontSize: 18 }}
+                                fontFamily='NunitoSans_Bold'
+                              >
                                 {item.Taskname}
-                              </AvatarFallbackText>
-                            </Avatar>
-                          )}
-
-                          <VStack>
-                            <Text
-                              size='sm'
-                              fontFamily='NunitoSans_Regular'
-                              style={{ color: '#91929E', fontSize: 14 }}
-                            >
-                              TSN000{index + 1234}
-                            </Text>
-                            <Text
-                              my='$2'
-                              size='sm'
-                              style={{ color: '#0A1629', fontSize: 18 }}
-                              fontFamily='NunitoSans_Bold'
-                            >
-                              {item.Taskname}
-                            </Text>
-                          </VStack>
+                              </Text>
+                            </VStack>
+                          </HStack>
                         </HStack>
-                      </HStack>
-                    </VStack>
-                  </View>
+                      </VStack>
+                    </View>
 
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between', // Space between elements
-                      gap: 10 // Small gap for alignment
-                    }}
-                  >
-                    {/* Created At Text with Calendar Icon */}
                     <View
                       style={{
                         flexDirection: 'row',
                         alignItems: 'center',
-                        gap: 5
+                        justifyContent: 'space-between', // Space between elements
+                        gap: 10 // Small gap for alignment
                       }}
                     >
-                      <Calendar color={'#7D8592'} />
-                      <Text color='#7D8592' fontFamily='NunitoSans_Regular'>
-                        Created{' '}
-                        {new Date(item.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </Text>
-                    </View>
-
-                    {/* Task Status Badge */}
-
-                    <View
-                      style={{
-                        backgroundColor:
-                          item.TaskStatus === 'Completed'
-                            ? '#E0F9F2' // Light green for Completed
-                            : item.TaskStatus === 'Pending'
-                            ? '#FFF8E1' // Light yellow for Pending
-                            : '#E6F3FF', // Light blue for In Progress
-                        paddingVertical: 4,
-                        paddingHorizontal: 12,
-                        borderRadius: 12,
-                        width: 100,
-                        height: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <Text
+                      {/* Created At Text with Calendar Icon */}
+                      <View
                         style={{
-                          color:
-                            item.TaskStatus === 'Completed'
-                              ? '#28A745' // Dark green for Completed
-                              : item.TaskStatus === 'Pending'
-                              ? '#FFC107' // Amber for Pending
-                              : '#007BFF', // Blue for In Progress
-                          fontFamily: 'MonaSans_Bold',
-                          fontSize: 12
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 5
                         }}
                       >
-                        {item.TaskStatus}
-                      </Text>
+                        <Calendar color={'#7D8592'} />
+                        <Text color='#7D8592' fontFamily='NunitoSans_Regular'>
+                          Created{' '}
+                          {new Date(item.createdAt).toLocaleDateString(
+                            'en-US',
+                            {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            }
+                          )}
+                        </Text>
+                      </View>
+
+                      {/* Task Status Badge */}
+
+                      <View
+                        style={{
+                          backgroundColor:
+                            item.TaskStatus === 'Completed'
+                              ? '#E0F9F2' // Light green for Completed
+                              : item.TaskStatus === 'Pending'
+                              ? '#FFF8E1' // Light yellow for Pending
+                              : '#E6F3FF', // Light blue for In Progress
+                          paddingVertical: 4,
+                          paddingHorizontal: 12,
+                          borderRadius: 12,
+                          width: 100,
+                          height: 30,
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color:
+                              item.TaskStatus === 'Completed'
+                                ? '#28A745' // Dark green for Completed
+                                : item.TaskStatus === 'Pending'
+                                ? '#FFC107' // Amber for Pending
+                                : '#007BFF', // Blue for In Progress
+                            fontFamily: 'MonaSans_Bold',
+                            fontSize: 12
+                          }}
+                        >
+                          {item.TaskStatus}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
 
-                  <Divider my={'$5'} />
+                    <Divider my={'$5'} />
 
-                  <View>
                     <View>
-                      <Text color='#0A1629' fontFamily='NunitoSans_Bold'>
-                        Project Data
-                      </Text>
-                    </View>
+                      <View>
+                        <Text color='#0A1629' fontFamily='NunitoSans_Bold'>
+                          Project Data
+                        </Text>
+                      </View>
 
-                    <View my='$3'>
-                      <Text color='#0A1629' fontFamily='MonaSans_400Regular'>
-                        {item.Description}
-                      </Text>
+                      <View my='$3'>
+                        <Text color='#0A1629' fontFamily='MonaSans_400Regular'>
+                          {item.Description}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                </Card>
+                  </Card>
+                </DraggableCard>
               ))
             ) : (
               <Card
@@ -714,6 +745,21 @@ const DashBoardCards = ({ user_id, isRefresh }) => {
         modalVisible={isImageViewer}
         closeModal={() => setisImageViewer(false)}
       />
+
+      {isEdittaskData.isopen && (
+        <TaskEditForm
+          isopen={isEdittaskData.isopen}
+          onclose={() =>
+            setisEdittaskData(current => ({
+              ...current,
+              isopen: false
+            }))
+          }
+          taskid={isEdittaskData.taskid}
+          taskData={isEdittaskData.taskData}
+          setisRefresh={setisRefresh}
+        />
+      )}
     </>
   )
 }
@@ -738,6 +784,30 @@ const styles = StyleSheet.create({
     shadowRadius: 8, // Shadow blur radius
     elevation: 5, // Elevation for Android (shadow on Android)
     marginBottom: 20 // Space between cards
+  },
+
+  scoreCard: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 10,
+    marginVertical: 10,
+    gap: 10
+  },
+  cardItem: {
+    flex: 1,
+    marginBottom: 10,
+    borderRadius: 20,
+    overflow: 'scroll',
+    height: 150,
+    width: 'auto',
+    paddingLeft: 5
+  },
+  gradientCard: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 20
   }
 })
 

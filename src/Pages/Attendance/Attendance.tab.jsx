@@ -59,7 +59,8 @@ const AttendanceTab = () => {
 
   return (
     <>
-      <View style={styles.container}>
+      <Attendance />
+      {/* <View style={styles.container}>
         <View style={styles.tabContainer}>
           <Animated.View
             style={[styles.activeTabIndicator, { transform: [{ translateX }] }]}
@@ -97,7 +98,7 @@ const AttendanceTab = () => {
             </View>
           )}
         </View>
-      </View>
+      </View> */}
 
       <View>
         <Center>
@@ -121,7 +122,7 @@ const AttendanceTab = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F9FD',
+    backgroundColor: '#F2F2F2',
     padding: 1
   },
   tabContainer: {

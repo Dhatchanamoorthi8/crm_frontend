@@ -115,8 +115,6 @@ const DrawerLayout = ({
     routes[routes.length - 1]
   )
 
-
-
   const isFocused = focusedRouteName === navigateTo
   const iconColor = isFocused ? '#3F8CFF' : '#7D8592'
   const labelColor = isFocused ? '#3F8CFF' : '#7D8592'
@@ -192,6 +190,7 @@ const UserProfile = ({ userdata }) => {
                         source={{
                           uri: `data:image/png;base64,${userdata.profile}`
                         }}
+                        alt={'User Avatar'} // Optional alt text to suppress the warning
                       />
                     ) : (
                       <AvatarFallbackText className='text-white'>

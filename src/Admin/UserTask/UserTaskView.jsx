@@ -25,12 +25,20 @@ import { Divider } from '@gluestack-ui/themed'
 import CalendarComponent from '@/src/Components/CalendarComponent'
 import Animated from 'react-native-reanimated'
 import Spinner from 'react-native-loading-spinner-overlay'
-import { RefreshControl } from '@gluestack-ui/themed'
+import { RefreshControl, Box, Badge, BadgeText } from '@gluestack-ui/themed'
+import AdminConversation from '@/src/Messages/AdminConversation'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import { useSelector } from 'react-redux'
+import { useNavigation } from '@react-navigation/native'
 
 const UserTaskView = ({ route }) => {
+  const nav = useNavigation()
+
   const { userid, userdata } = route.params
 
-  console.log(userdata)
+  const userRole = useSelector(state => state.user.userData.user.role)
+
+  const userData = useSelector(state => state.user.userData.user)
 
   const [UserTaskData, SetUserTaskData] = useState([])
 
@@ -40,9 +48,12 @@ const UserTaskView = ({ route }) => {
 
   const [refreshing, setRefreshing] = useState(false)
 
+  const [isChatOpen, SetisChatOpen] = useState(false)
+
+  const [messagesCount, setMessagesCount] = useState(null)
+
   const fetchTaskData = async (mood, range) => {
     const moods = mood === undefined ? 'today' : mood
-
     console.log(mood, range, 'mood, range')
 
     setloader(true)
@@ -72,13 +83,28 @@ const UserTaskView = ({ route }) => {
     setisCalendarVisible(false)
   }
 
+  async function fetchUnreadMessages () {
+    try {
+      const response = await api.get(
+        `conversation/unread-messages/${userData.userid}/${userData.role}`
+      )
+      if (response.status === 200) {
+        setMessagesCount(response.data.unreadCount)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   useEffect(() => {
     fetchTaskData()
+    fetchUnreadMessages()
   }, [])
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true)
     fetchTaskData()
+    fetchUnreadMessages()
     setTimeout(() => {
       setRefreshing(false)
     }, 1000)
@@ -178,6 +204,7 @@ const UserTaskView = ({ route }) => {
                     source={{
                       uri: `data:image/png;base64,${userdata.profile}`
                     }}
+                    alt={'User Avatar'} // Optional alt text to suppress the warning
                   />
                 </Avatar>
                 <VStack>
@@ -226,6 +253,53 @@ const UserTaskView = ({ route }) => {
                           Task
                         </Text>
                       </View>
+
+                      <View alignItems='flex-start'>
+                        {messagesCount && messagesCount ? (
+                          <TouchableOpacity
+                            onPress={() =>
+                              nav.navigate('ChatScreen', {
+                                userid: userid
+                              })
+                            }
+                          >
+                            <Box className='items-center'>
+                              <VStack>
+                                <Badge
+                                  className='z-10 self-end h-[22px] w-[22px] bg-red-600 rounded-full -mb-3.5 -mr-3.5'
+                                  variant='solid'
+                                  bg='$red600'
+                                  rounded={'$full'}
+                                >
+                                  <BadgeText style={{ color: 'white' }}>
+                                    {messagesCount}
+                                  </BadgeText>
+                                </Badge>
+
+                                <MaterialIcons
+                                  name='chat'
+                                  size={24}
+                                  color='black'
+                                />
+                              </VStack>
+                            </Box>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity
+                            onPress={() =>
+                              nav.navigate('ChatScreen', {
+                                userid: userid
+                              })
+                            }
+                          >
+                            <MaterialIcons
+                              name='chat'
+                              size={24}
+                              color='black'
+                            />
+                          </TouchableOpacity>
+                        )}
+                      </View>
                     </View>
 
                     <View my='$5'>
@@ -248,6 +322,7 @@ const UserTaskView = ({ route }) => {
                                 source={{
                                   uri: `data:image/png;base64,${item.taskprofile}`
                                 }}
+                                alt={'User Avatar'} // Optional alt text to suppress the warning
                               />
                             </Avatar>
 

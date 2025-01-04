@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   StyleSheet,
   SafeAreaView,
   Dimensions,
-  Animated
+  Animated,
+  Platform,
+  Keyboard
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import LottieView from 'lottie-react-native'
@@ -15,6 +17,11 @@ import api from '../Services/axiosConfig'
 import { useNavigation } from '@react-navigation/native'
 import { useDispatch } from 'react-redux'
 import { login } from '../../Slices/userSlice'
+import { Center } from '@gluestack-ui/themed'
+import Spinner from 'react-native-loading-spinner-overlay'
+import getDeviceInfo from '../Services/deviceInfo'
+import { KeyboardAvoidingView } from 'react-native'
+import { ScrollView } from '@gluestack-ui/themed'
 
 const logoUri = require('../../assets/vingrologo.png')
 
@@ -25,15 +32,23 @@ export default function App () {
   const animation = useRef(null)
   const nav = useNavigation()
   const [LoginData, SetLoginData] = useState({ email: '', password: '' })
+
   const dispatch = useDispatch()
+
   const [showPassword, setShowPassword] = useState(false)
 
+  const [loader, setloader] = useState(false)
+
   const [errorMessage, setErrorMessage] = useState('')
+
   const [errorOpacity] = useState(new Animated.Value(0)) // Animation for error message
 
   const handleLogin = async () => {
+    console.log('login clicked')
+
     try {
       if (LoginData.email && LoginData.password) {
+        setloader(true)
         const response = await api.post(`/auth/login`, LoginData)
         const token = response.data.access_token
         const user = response.data.userData
@@ -41,8 +56,10 @@ export default function App () {
         const userData = { user, token }
 
         dispatch(login(userData))
+        setloader(false)
         nav.navigate('DrawerNavigator')
       } else {
+        setloader(false)
         showErrorMessage('Please enter valid credentials')
       }
     } catch (error) {
@@ -55,6 +72,7 @@ export default function App () {
       } else {
         showErrorMessage('An unexpected error occurred. Please try again.')
       }
+      setloader(false)
       console.log('Error:', error)
     }
   }
@@ -79,73 +97,135 @@ export default function App () {
     })
   }
 
+  useEffect(() => {
+    console.log('called')
+
+    const deviceinfo = async () => {
+      try {
+        const { deviceId, deviceInfo } = await getDeviceInfo()
+
+        console.log(deviceId, deviceInfo, ' deviceId, deviceInfo')
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    deviceinfo()
+  }, [])
+
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
+
+  useEffect(() => {
+    // Listener to track when the keyboard is shown or hidden
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true)
+    })
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false)
+    })
+
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
+    }
+  }, [])
+
   return (
     <LinearGradient
       colors={['#990ECA', 'white']}
       style={styles.gradientBackground}
     >
       <SafeAreaView style={styles.container}>
-        <LinearGradient
-          colors={['#8E24AA', '#6A1B9A']}
-          style={styles.curvedBackground}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : null}
         >
-          <View>
-            <LottieView
-              autoPlay
-              loop={true}
-              ref={animation}
-              style={styles.lottie}
-              source={lottiePath}
-            />
-          </View>
-        </LinearGradient>
-
-        <View style={styles.loginCardContainer}>
-          <LinearGradient
-            colors={['#ffffff', '#F3E5F5', '#ffffff']}
-            style={styles.formContainer}
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps='handled'
           >
-            <Text style={styles.loginWith}>
-              Login With {isEmail ? 'Email' : 'Phone Number'}
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder={isEmail ? 'Enter email ID' : 'Enter phone number'}
-              keyboardType={isEmail ? 'email-address' : 'phone-pad'}
-              onChangeText={e => SetLoginData({ ...LoginData, email: e })}
-              defaultValue={LoginData.email}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder='Enter Password'
-              secureTextEntry
-              onChangeText={e => SetLoginData({ ...LoginData, password: e })}
-              defaultValue={LoginData.password}
-            />
-
-            {/* Forgot Password */}
-            <TouchableOpacity
-              style={styles.forgotPassword}
-              onPress={() => nav.navigate('ForgotPasswordScreen')}
+            <LinearGradient
+              colors={['#8E24AA', '#6A1B9A']}
+              style={styles.curvedBackground}
             >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
+              <View>
+                <LottieView
+                  autoPlay
+                  loop={true}
+                  ref={animation}
+                  style={styles.lottie}
+                  source={lottiePath}
+                />
+              </View>
+            </LinearGradient>
 
-            {/* Login Button */}
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
+            <View style={styles.loginCardContainer}>
+              <LinearGradient
+                colors={['#ffffff', '#F3E5F5', '#ffffff']}
+                style={styles.formContainer}
+              >
+                <Text style={styles.loginWith}>
+                  Login With {isEmail ? 'Email' : 'Phone Number'}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={
+                    isEmail ? 'Enter email ID' : 'Enter phone number'
+                  }
+                  keyboardType={isEmail ? 'email-address' : 'phone-pad'}
+                  onChangeText={e => SetLoginData({ ...LoginData, email: e })}
+                  defaultValue={LoginData.email}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder='Enter Password'
+                  secureTextEntry
+                  onChangeText={e =>
+                    SetLoginData({ ...LoginData, password: e })
+                  }
+                  defaultValue={LoginData.password}
+                />
 
-        {/* Animated Error Message */}
-        <Animated.View
-          style={[styles.errorContainer, { opacity: errorOpacity }]}
-        >
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </Animated.View>
+                {/* Forgot Password */}
+                <TouchableOpacity
+                  style={styles.forgotPassword}
+                  onPress={() => nav.navigate('ForgotPasswordScreen')}
+                >
+                  <Text style={styles.forgotPasswordText}>
+                    Forgot Password?
+                  </Text>
+                </TouchableOpacity>
 
-        
+                {/* Login Button */}
+
+                <TouchableOpacity
+                  style={styles.loginButton}
+                  onPress={() => handleLogin()}
+                >
+                  <Text style={styles.buttonText}>Login</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+
+            {/* Animated Error Message */}
+            <Animated.View
+              style={[styles.errorContainer, { opacity: errorOpacity }]}
+            >
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </Animated.View>
+          </ScrollView>
+
+          <Center>
+            <Spinner
+              size='large'
+              visible={loader}
+              textContent='Loading ......'
+              animation='fade'
+              textStyle={styles.loaderText}
+            />
+          </Center>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </LinearGradient>
   )
@@ -158,6 +238,11 @@ const styles = StyleSheet.create({
   gradientBackground: {
     flex: 1
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-start', // Ensure content aligns from the top
+    paddingVertical: 20 // Add some vertical padding
+  },
   curvedBackground: {
     flex: 0,
     borderBottomLeftRadius: 50,
@@ -167,7 +252,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   loginCardContainer: {
-    flex: 0,
+    flex: 0.5,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 30
@@ -218,7 +303,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 10
   },
   buttonText: {
     color: '#fff',
@@ -233,7 +318,7 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     position: 'absolute',
-    bottom: 50, // Error message at the bottom of the screen
+    bottom: 10, // Error message at the bottom of the screen
     left: 0,
     right: 0,
     justifyContent: 'center',

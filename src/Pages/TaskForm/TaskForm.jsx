@@ -168,7 +168,7 @@ const TaskForm = ({ setShowModal, setisRefresh }) => {
       const base64String = await FileSystem.readAsStringAsync(image, {
         encoding: FileSystem.EncodingType.Base64
       })
-      
+
       const imagestring = `${base64String}`
 
       const updatedTasks = tasks.map((task, i) =>
@@ -246,29 +246,6 @@ const TaskForm = ({ setShowModal, setisRefresh }) => {
                   >
                     Task {index + 1}
                   </Text>
-                  {tasks.length > 1 && (
-                    <>
-                      <Tooltip
-                        placement='top'
-                        trigger={triggerProps => {
-                          return (
-                            <TouchableOpacity {...triggerProps}>
-                              <Icon
-                                as={TrashIcon}
-                                size='md'
-                                onPress={() => removeTask(index)}
-                                color='$red600'
-                              />
-                            </TouchableOpacity>
-                          )
-                        }}
-                      >
-                        <TooltipContent>
-                          <TooltipText>Tooltip</TooltipText>
-                        </TooltipContent>
-                      </Tooltip>
-                    </>
-                  )}
                 </HStack>
 
                 {/* Task Name */}
@@ -282,7 +259,7 @@ const TaskForm = ({ setShowModal, setisRefresh }) => {
                   </Text>
                   <Input style={{ borderRadius: 14 }}>
                     <InputField
-                      value={task.Taskname}
+                      //value={task.Taskname}
                       onChangeText={value =>
                         handleInputChange(index, 'Taskname', value)
                       }
@@ -357,7 +334,7 @@ const TaskForm = ({ setShowModal, setisRefresh }) => {
                       placeholder='Add some description of the project'
                       color='#7D8592'
                       fontFamily='MonaSans_400Regular'
-                      value={task.Description}
+                      //value={task.Description}
                       onChangeText={value =>
                         handleInputChange(index, 'Description', value)
                       }
@@ -451,8 +428,6 @@ const TaskForm = ({ setShowModal, setisRefresh }) => {
                     </HStack>
                   </Box>
                 </View> */}
-
-
               </VStack>
             ))}
 

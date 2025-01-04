@@ -30,12 +30,7 @@ import {
 } from 'react-native'
 import EnquiryReports from './src/Pages/EnquiryReports'
 import ErrorBoundary from 'react-native-error-boundary'
-import { Ionicons, MaterialIcons } from '@expo/vector-icons'
-import * as Notifications from 'expo-notifications'
 import Settings from './src/Admin/Settings'
-import EmployeeTab from './src/Admin/Employee.Tab.'
-import './global.css'
-
 import SplashScreenComponent from './src/Hooks/useSplashScreen'
 import ProfileScreen from './src/Pages/ProfileScreen'
 import CommonSettings from './src/Pages/Settings/CommonSettings'
@@ -43,6 +38,11 @@ import AboutScreen from './src/Pages/Settings/AboutScreen'
 import AdminAttedanceHistory from './src/Admin/Dashboard/AdminAttedanceHistory'
 import UserTaskView from './src/Admin/UserTask/UserTaskView'
 import ForgotPasswordScreen from './src/Pages/ForgotPasswordScreen'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import ChatScreen from './src/Messages/ChatScreen'
+import ChatHeader from './src/Messages/ChatHeader'
+import AttendaceHistory from './src/Pages/Attendance/AttendaceHistory'
+
 SplashScreen.preventAutoHideAsync()
 
 const Stack = createStackNavigator()
@@ -94,28 +94,32 @@ export default function App () {
   )
 
   return (
-    <ErrorBoundary
-      FallbackComponent={fallbackErrorScreen}
-      onError={error => console.log('Error captured:', error)}
-    >
-      <Provider store={store}>
-        <GluestackUIProvider config={config}>
-          <NavigationContainer ref={navigationRef} independent={true}>
-            <StatusBar
-              backgroundColor={showSplash ? '#000' : '#F4F9FD'}
-              barStyle={showSplash ? 'light-content' : 'dark-content'}
-            />
-            <AlertNotificationRoot>
-              {showSplash ? (
-                <SplashScreenComponent onFinish={() => setShowSplash(false)} />
-              ) : (
-                <MainNavigator />
-              )}
-            </AlertNotificationRoot>
-          </NavigationContainer>
-        </GluestackUIProvider>
-      </Provider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary
+        FallbackComponent={fallbackErrorScreen}
+        onError={error => console.log('Error captured:', error)}
+      >
+        <Provider store={store}>
+          <GluestackUIProvider config={config}>
+            <NavigationContainer ref={navigationRef} independent={true}>
+              <StatusBar
+                backgroundColor={showSplash ? '#000' : '#F4F9FD'}
+                barStyle={showSplash ? 'light-content' : 'dark-content'}
+              />
+              <AlertNotificationRoot>
+                {showSplash ? (
+                  <SplashScreenComponent
+                    onFinish={() => setShowSplash(false)}
+                  />
+                ) : (
+                  <MainNavigator />
+                )}
+              </AlertNotificationRoot>
+            </NavigationContainer>
+          </GluestackUIProvider>
+        </Provider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   )
 }
 
@@ -177,6 +181,7 @@ function MainNavigator () {
                 name='DrawerNavigator'
                 options={{ headerShown: false }}
                 initialParams={{ role: isAuthenticated }}
+                initialRouteName={'DrawerNavigator'}
               >
                 {() => (
                   <Suspense
@@ -416,7 +421,6 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
-
               <Stack.Screen
                 name='AdminAttedanceHistory'
                 options={({ route }) => ({
@@ -464,7 +468,6 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
-
               <Stack.Screen
                 name='UserTasks'
                 options={{
@@ -503,6 +506,71 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
+
+              <Stack.Screen
+                name='ChatScreen'
+                options={{
+                  animation: 'fade',
+                  header: ({ navigation, route }) => (
+                    <ChatHeader
+                      navigation={navigation}
+                      title='ChatScreen'
+                      route={route}
+                    />
+                  )
+                }}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <ChatScreen route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>
+
+              <Stack.Screen
+                name='AttendaceHistory'
+                options={{
+                  headerShown: true,
+                  title: 'AttendaceHistory',
+                  transitionSpec: {
+                    open: config,
+                    close: config
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
+                }}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <AttendaceHistory route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>
+
+              
             </Stack.Group>
           </>
         ) : (

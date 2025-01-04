@@ -81,10 +81,6 @@ const Locations = ({ isOpen, onClose, locationGet }) => {
         })
         setLoading(false)
         locationGet(currentLocation.coords)
-        Alert.alert(
-          'Location Marked',
-          'Your location has been marked on the map.'
-        )
         setTimeout(() => {
           onClose(false)
         }, 2000)
