@@ -34,11 +34,12 @@ import { Center } from '@gluestack-ui/themed'
 import Alerts from '../../Components/Alert'
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { Dimensions } from 'react-native'
+import Spinner from 'react-native-loading-spinner-overlay'
 
 const AddPosition = () => {
   const screenHeight = Dimensions.get('screen').height
 
-
+  const [loader, setLoader] = useState(false)
 
   const [DesginationData, setDesginationData] = useState([])
 
@@ -71,7 +72,6 @@ const AddPosition = () => {
 
       if (response.status === 200) {
         setDesginationData(response.data)
-
       }
     } catch (error) {
       console.log(error)
@@ -79,7 +79,6 @@ const AddPosition = () => {
   }
 
   const handlepressEdit = (id, name) => {
-
     setdesginationEditData(current => ({
       ...current,
       Des_id: id,
@@ -102,11 +101,14 @@ const AddPosition = () => {
       return
     }
 
+    setLoader(true)
 
     try {
       const response = await api.post('userdesgination', NewDesginationName)
 
       if (response.status === 201) {
+        apiCall()
+        setLoader(false)
         SetModelState(c => ({ ...c, isOpen: false, type: '' }))
         setAlertProps({
           alertType: 'Success',
@@ -114,18 +116,32 @@ const AddPosition = () => {
           renderType: 'toast',
           visible: true
         })
-
       }
     } catch (error) {
       console.log(error)
+      setLoader(false)
+    } finally {
+      setLoader(false)
     }
   }
 
   const handleEditConfirm = async () => {
+    if (desginationEditData.DesginationName === '') {
+      SetModelState(c => ({ ...c, isOpen: false, type: '' }))
+      setAlertProps({
+        alertType: 'Error',
+        content: `Please Enter Valid Desgination Name`,
+        renderType: 'toast',
+        visible: true
+      })
+      return
+    }
     try {
+      setLoader(true)
       const response = await api.patch('userdesgination', desginationEditData)
       if (response.status === 200) {
         apiCall()
+        setLoader(false)
         SetModelState(c => ({ ...c, isOpen: false, type: '' }))
         setAlertProps({
           alertType: 'Success',
@@ -136,18 +152,21 @@ const AddPosition = () => {
       }
     } catch (error) {
       console.log(error)
+    } finally {
+      setLoader(false)
     }
   }
 
   const handleDelete = async () => {
     try {
+      setLoader(true)
       const response = await api.delete(
         `userdesgination/${desginationEditData.Des_id}`
       )
 
-
       if (response.status === 200) {
         apiCall()
+        setLoader(false)
         SetModelState(c => ({ ...c, isOpen: false, type: '' }))
         setAlertProps({
           alertType: 'Success',
@@ -158,6 +177,8 @@ const AddPosition = () => {
       }
     } catch (error) {
       console.log(error)
+    } finally {
+      setLoader(false)
     }
   }
 
@@ -338,6 +359,7 @@ const AddPosition = () => {
                             action='primary'
                             bg='#3F8CFF'
                             onPress={() => handleEditConfirm()}
+                            disabled={loader}
                           >
                             <ButtonText>Save</ButtonText>
                             <ButtonIcon as={EditIcon} ml={'$2'} />
@@ -397,6 +419,7 @@ const AddPosition = () => {
                           marginRight={'$10'}
                           my={'$3'}
                           onPress={handleSave}
+                          disabled={loader}
                         >
                           <ButtonText>Save</ButtonText>
                         </Button>
@@ -439,6 +462,10 @@ const AddPosition = () => {
           )}
         </Center>
       </View>
+
+      <Center>
+        <Spinner size='large' visible={loader} />
+      </Center>
     </ScrollView>
   )
 }

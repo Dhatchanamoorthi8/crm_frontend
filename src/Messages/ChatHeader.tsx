@@ -28,11 +28,11 @@ const ChatHeader = ({ navigation, title, route }) => {
 
 
 
-        console.log(timeString);
+        console.log(timeString, "timeString");
 
 
         // Split the time string into hours, minutes, and seconds
-        const [hours, minutes, seconds] = timeString.split(':');
+        const [hours, minutes, seconds] = timeString ? timeString.split(':') : ['00', '00', '00'];
 
         // Create a new Date object using the current date, but setting the time to the given hours, minutes, and seconds
         const date = new Date();
@@ -40,7 +40,6 @@ const ChatHeader = ({ navigation, title, route }) => {
         date.setMinutes(minutes);
         date.setSeconds(seconds);
 
-        // Format the time to 12-hour format with AM/PM
         return format(date, 'hh:mm:ss a');  // e.g., "05:51:11 PM"
     }
 

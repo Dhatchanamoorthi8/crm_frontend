@@ -35,27 +35,31 @@ const SwipeButton = ({ title, onComplete, backgroundColor }) => {
   }
 
   // If swiped, hide the swipe button
-  if (swiped) {
-    return null
-  }
+  // if (swiped) {
+  //   return null
+  // }
 
   return (
     <View style={[styles.swipeButton, { backgroundColor }]}>
-      <PanGestureHandler
-        onGestureEvent={!swiped ? handleGesture : undefined}
-        onEnded={!swiped ? handleGestureEnd : undefined}
-      >
-        <Animated.View
-          style={[
-            styles.swipeCircle,
-            {
-              transform: [{ translateX: translateX }]
-            }
-          ]}
+      {!swiped && (
+        <PanGestureHandler
+          onGestureEvent={!swiped ? handleGesture : undefined}
+          onEnded={!swiped ? handleGestureEnd : undefined}
         >
-          <Text style={[styles.arrow, { color: backgroundColor }]}>{'>'}</Text>
-        </Animated.View>
-      </PanGestureHandler>
+          <Animated.View
+            style={[
+              styles.swipeCircle,
+              {
+                transform: [{ translateX: translateX }]
+              }
+            ]}
+          >
+            <Text style={[styles.arrow, { color: backgroundColor }]}>
+              {'>'}
+            </Text>
+          </Animated.View>
+        </PanGestureHandler>
+      )}
 
       {/* Swipe Instruction Text */}
       {!swiped && (

@@ -65,7 +65,6 @@ import { Center } from '@gluestack-ui/themed'
 import Spinner from 'react-native-loading-spinner-overlay'
 
 
-
 const uploadImg = require("@/assets/Icons/TaskIcons/12.png")
 const avatarImg = require("@/assets/Icons/41.png")
 
@@ -76,6 +75,9 @@ const ProfileScreen = () => {
     const focus = useIsFocused();
 
     const globalData = useSelector((state) => state?.user.userData);
+
+    const avatarImages = useSelector((state) => state.user.userData?.user.profile);
+
 
     const userid = useSelector((state) => state.user.userData?.user.userid);
 
@@ -263,14 +265,20 @@ const ProfileScreen = () => {
                                                 bg={ColorCodes(userData.name)}
                                                 size='2xl'
                                             >
-                                                <AvatarFallbackText className='text-white'>
-                                                    {userData.name}
-                                                </AvatarFallbackText>
 
-                                                {userData.profile && (
-                                                    <AvatarImage source={{ uri: `data:image/png;base64,${userData.profile}` }} alt={'User Avatar'} />
-                                                )
-                                                }
+                                                {userData.profile ? (
+                                                    <AvatarImage
+                                                        source={{
+                                                            uri: `data:image/png;base64,${avatarImages}`
+                                                        }}
+                                                        alt={'User Avatar'}
+                                                    />
+                                                ) : (
+                                                    <AvatarFallbackText className='text-white'>
+                                                        {userData.username}
+                                                    </AvatarFallbackText>
+                                                )}
+
 
 
 
@@ -283,6 +291,10 @@ const ProfileScreen = () => {
 
 
                                             </Avatar>
+
+
+
+
                                         </TouchableOpacity >
 
                                     </HStack>
@@ -292,7 +304,7 @@ const ProfileScreen = () => {
                                             style={{ color: '#0A1629', fontSize: 23 }}
                                             fontFamily='MonaSans_SemiBold'
                                             textAlign='center'
-                                            my={'$2'}
+                                            my={"$2"}
                                         >
                                             {userData.name}
                                         </Text>

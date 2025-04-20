@@ -52,6 +52,9 @@ export default function ForgotPasswordScreen () {
       setloader(true)
       const response = await api.post('/auth/send-otp', { email, dob })
 
+
+  
+
       if (response.status === 201) {
         setOtpSent(true)
         setloader(false)
@@ -66,6 +69,7 @@ export default function ForgotPasswordScreen () {
       const backendMessage =
         error.response.data?.message || 'Something went wrong!'
       showErrorMessage(backendMessage)
+
       //Alert.alert('Error', 'Failed to send OTP. Please try again.')
     }
   }

@@ -1,4 +1,4 @@
-import { Text, View } from '@gluestack-ui/themed'
+import { Center, Text, View } from '@gluestack-ui/themed'
 import { useCallback, useEffect, useState } from 'react'
 import { TouchableOpacity, StyleSheet } from 'react-native'
 import { getUniqueId, getManufacturer } from 'react-native-device-info'
@@ -20,6 +20,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native'
 import { ScrollView } from '@gluestack-ui/themed'
 import { RefreshControl } from 'react-native-gesture-handler'
 import { Animated } from 'react-native'
+import Spinner from 'react-native-loading-spinner-overlay'
 const { width, height } = Dimensions.get('window')
 
 const Attendance = () => {
@@ -34,6 +35,8 @@ const Attendance = () => {
   const navigation = useNavigation()
 
   const [refreshing, setRefreshing] = useState(false)
+
+  const [loader, setLoader] = useState(false) // Loader state
 
   const [isLocationOpen, setisLocationOpen] = useState(false)
 
@@ -97,12 +100,13 @@ const Attendance = () => {
 
   useEffect(() => {
     if (focus) {
+      setLoader(true) // Start loader
       DeviceUniqueid()
-      fetchAttendance()
       generateWeekDates()
       const today = new Date()
       const formattedDate = today.toISOString().split('T')[0]
       setSelectedDate(formattedDate)
+      fetchAttendance(formattedDate).then(() => setLoader(false)) // Stop loader after fetching
     }
   }, [focus])
 
@@ -188,6 +192,7 @@ const Attendance = () => {
   const fetchAttendance = async date => {
     const searchdate = date ? date : new Date()
     SetAttendanceMsg('')
+    setLoader(true)
     try {
       const response = await api.get(
         `attendance/attendanceFind/${user_id}/${searchdate}`
@@ -232,16 +237,17 @@ const Attendance = () => {
         outtime: '',
         totalHours: ''
       }))
+    } finally {
+      setLoader(false)
     }
   }
-
 
   const onRefresh = useCallback(() => {
     const today = new Date()
     const formattedDate = today.toISOString().split('T')[0]
     setSelectedDate(formattedDate)
     setRefreshing(true)
-    fetchAttendance(formattedDate)
+    fetchAttendance(formattedDate).then(() => setLoader(false)) // Stop loader after fetching
     setTimeout(() => {
       setRefreshing(false)
     }, 1000)
@@ -263,7 +269,10 @@ const Attendance = () => {
     return new Intl.DateTimeFormat('en-US', options).format(new Date(date))
   }
 
+  // console.log(typeof(attendanceTime.intime),attendanceTime.intime,"attendanceTime.intime" )
+  // console.log(typeof(attendanceTime.outtime),attendanceTime.outtime,"attendanceTime.outtime" )
 
+  console.log(attendanceTime.intime === '' && AttendanceMsg === '','button status')
   return (
     <>
       <ScrollView
@@ -286,8 +295,6 @@ const Attendance = () => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => {
-                    console.log(item.formattedDate)
-
                     setSelectedDate(item.formattedDate)
                     fetchAttendance(item.formattedDate)
                   }}
@@ -556,33 +563,22 @@ const Attendance = () => {
             </View>
 
             <View style={styles.swipeButtonWrapper}>
-              <View
-                display={
-                  attendanceTime.intime === '' && AttendanceMsg === ''
-                    ? 'flex'
-                    : 'none'
-                }
-              >
+              {attendanceTime.intime === '' && AttendanceMsg === '' && (
                 <SwipeButton
                   title='Swipe to Check In'
                   backgroundColor='#4285F4'
                   onComplete={handleCheckIn}
                 />
-              </View>
-              <View
-                display={
-                  attendanceTime.intime !== '' &&
-                  attendanceTime.outtime === 'null'
-                    ? 'flex'
-                    : 'none'
-                }
-              >
+              )}
+
+              {attendanceTime.intime !== '' &&  attendanceTime.outtime === 'null' && (
                 <SwipeButton
-                  title='Swipe to Check Out'
-                  backgroundColor='#cb202d'
-                  onComplete={handleCheckOut}
+                title='Swipe to Check Out'
+                backgroundColor='#cb202d'
+                onComplete={handleCheckOut}
                 />
-              </View>
+              )}
+
             </View>
 
             {AttendanceMsg !== '' && (
@@ -611,7 +607,11 @@ const Attendance = () => {
           </LinearGradient>
         </View>
       </ScrollView>
-      
+
+      <Center>
+        <Spinner size={'large'} visible={loader} />
+      </Center>
+
       <View
         bg='$yellow100'
         w={'$full'}

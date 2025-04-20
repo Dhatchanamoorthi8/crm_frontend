@@ -53,13 +53,13 @@ const DashBoardPage = () => {
 
       if (dashboardResponse.status === 200) {
         setloader(false)
-        SetTableData(dashboardResponse.data.followUpClients)
-        SetCardCount(prevData => ({
-          ...prevData,
-          newEnquiry: dashboardResponse.data.newClientsCount,
-          Followup: dashboardResponse.data.followUpClientsCount
-        }))
-        SetTaskData(taskResponse.data)
+        //SetTableData(dashboardResponse.data.followUpClients)
+        // SetCardCount(prevData => ({
+        //   ...prevData,
+        //   newEnquiry: dashboardResponse.data.newClientsCount,
+        //   Followup: dashboardResponse.data.followUpClientsCount
+        // }))
+        //SetTaskData(taskResponse.data)
       }
     } catch (error) {
       console.log(error)

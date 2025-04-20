@@ -21,7 +21,7 @@ export const useBackHandler = () => {
     //   // navigation.reset({
     //   //   index: 0,
     //   //   routes: [{ name: 'Login' }]
-    //   // })
+    //   // })z
     // }, 0) // Ensure navigation reset happens after logout state change
   }
 

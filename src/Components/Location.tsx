@@ -120,12 +120,12 @@ const Locations = ({ isOpen, onClose, locationGet }) => {
       } else {
         setErrorMsg('An unexpected error occurred.')
       }
+    }finally {
+      setLoading(false)
     }
   }
 
   const requestPermission = async () => {
-    
-
     try {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -236,9 +236,6 @@ const Locations = ({ isOpen, onClose, locationGet }) => {
           ) : (
 
             <>
-
-
-
               <View >
                 {/* Centering the Lottie animation */}
                 <View style={styles.animationContainer}>

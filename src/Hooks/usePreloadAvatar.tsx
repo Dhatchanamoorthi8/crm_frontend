@@ -64,7 +64,7 @@ export const preloadAvatars = async () => {
         }
     }
 
-    console.log('All avatars preloaded:', preloadedUris);
+    //console.log('All avatars preloaded:', preloadedUris);
     return preloadedUris; // Return the list of local URIs
 };
 
@@ -112,7 +112,7 @@ export const preloadAvatarMen = async () => {
         }
     }
 
-    console.log('All avatars preloaded:', preloadedUris);
+    //console.log('All avatars preloaded:', preloadedUris);
     return preloadedUris; // Return the list of local URIs
 
 }
@@ -161,7 +161,7 @@ export const preloadAvatarWomen = async () => {
         }
     }
 
-    console.log('All avatars preloaded:', preloadedUris);
+    //console.log('All avatars preloaded:', preloadedUris);
     return preloadedUris;
 
 }
@@ -203,7 +203,7 @@ export const preloadTaskImages = async () => {
         }
     }
 
-    console.log('All avatars preloaded:', preloadedUris);
+    //console.log('All avatars preloaded:', preloadedUris);
     return preloadedUris;
 
 }

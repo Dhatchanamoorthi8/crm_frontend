@@ -395,8 +395,8 @@ const NewEnquiry = () => {
       >
         <Card
           variant='elevated'
-          mx={'$1'}
-          my={'$1'}
+          // mx={'$1'}
+          // my={'$1'}
           rounded={'$2xl'}
           style={styles.card}
           bg='#F4F9FD'
@@ -412,17 +412,19 @@ const NewEnquiry = () => {
               my={'$2'}
               flexDirection='row'
               justifyContent='space-evenly'
+              flexWrap='wrap'
               gap={'$2'}
               style={{ width: '100%', padding: '0%' }}
             >
-              <View style={{ width: '50%' }}>
-                <Text fontFamily='MonaSans_400Regular'>
+              <View style={{ width: '100%' }}>
+                {/* <Text fontFamily='MonaSans_400Regular'>
                   Company Name <Text color='$red700'>*</Text>
-                </Text>
-                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
+                </Text> */}
+                <Input mt={'$1'} style={{ height: 45,}}>
                   <InputField
                     type='text'
                     value={EnquiryData.company_name}
+                    placeholder="Company Name" 
                     onChangeText={text =>
                       handleChangeInput('company_name', text)
                     }
@@ -439,14 +441,15 @@ const NewEnquiry = () => {
                 )}
               </View>
 
-              <View style={{ width: '50%' }}>
-                <Text fontFamily='MonaSans_400Regular'>
+              <View style={{ width: '100%' }}>
+                {/* <Text fontFamily='MonaSans_400Regular'>
                   Client Name <Text color='$red700'>*</Text>
-                </Text>
-                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
+                </Text> */}
+                <Input mt={'$1'} style={{ height: 45, }}>
                   <InputField
                     type='text'
                     value={EnquiryData.client_name}
+                    placeholder="Client Name" 
                     onChangeText={text =>
                       handleChangeInput('client_name', text)
                     }
@@ -468,16 +471,18 @@ const NewEnquiry = () => {
               my={'$2'}
               flexDirection='row'
               justifyContent='space-evenly'
+              flexWrap='wrap'
               gap={'$2'}
               style={{ width: '100%', padding: '0%' }}
             >
-              <View style={{ width: '50%' }}>
-                <Text fontFamily='MonaSans_400Regular'>
+              <View style={{ width: '100%' }}>
+                {/* <Text fontFamily='MonaSans_400Regular'>
                   Contact No <Text color='$red700'>*</Text>
-                </Text>
-                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
+                </Text> */}
+                <Input mt={'$1'} style={{ height: 45, }}>
                   <InputField
                     type='text'
+                    placeholder="Contact No" 
                     keyboardType='phone-pad'
                     value={EnquiryData.contact}
                     onChangeText={text => handleChangeInput('contact', text)}
@@ -493,13 +498,14 @@ const NewEnquiry = () => {
                   </HStack>
                 )}
               </View>
-              <View style={{ width: '50%' }}>
-                <Text fontFamily='MonaSans_400Regular'>
+              <View style={{ width: '100%' }}>
+                {/* <Text fontFamily='MonaSans_400Regular'>
                   Email <Text color='$red700'>*</Text>
-                </Text>
-                <Input mt={'$1'} style={{ height: 45, borderRadius: 14 }}>
+                </Text> */}
+                <Input mt={'$1'} style={{ height: 45, }}>
                   <InputField
                     type='text'
+                    placeholder="Email Address" 
                     value={EnquiryData.email}
                     onChangeText={text => handleChangeInput('email', text)}
                   />

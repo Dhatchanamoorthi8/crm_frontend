@@ -2,7 +2,7 @@ import axios from 'axios'
 import { logout } from '../../Slices/userSlice'
 import config from '../config'
 import { store } from '../../Store/store'
-import getDeviceInfo from './deviceInfo' // Import the device info utility
+import getDeviceInfo from './deviceInfo' 
 
 const api = axios.create({
   baseURL: config.API_URL,

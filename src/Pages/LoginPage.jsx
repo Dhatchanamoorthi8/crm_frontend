@@ -22,6 +22,7 @@ import Spinner from 'react-native-loading-spinner-overlay'
 import getDeviceInfo from '../Services/deviceInfo'
 import { KeyboardAvoidingView } from 'react-native'
 import { ScrollView } from '@gluestack-ui/themed'
+import axios from 'axios'
 
 const logoUri = require('../../assets/vingrologo.png')
 
@@ -43,13 +44,22 @@ export default function App () {
 
   const [errorOpacity] = useState(new Animated.Value(0)) // Animation for error message
 
+  const fetchHearBeat = async()=>{
+    try {
+      const response = await api.post('/auth/demo-api-Router')
+      console.log(response);
+    } catch (error) {
+      console.log(error,"error");    
+      console.log(error.response.data.message,"errors");    
+    }
+  } 
   const handleLogin = async () => {
-    console.log('login clicked')
-
+ 
     try {
       if (LoginData.email && LoginData.password) {
         setloader(true)
         const response = await api.post(`/auth/login`, LoginData)
+        
         const token = response.data.access_token
         const user = response.data.userData
 
@@ -98,18 +108,15 @@ export default function App () {
   }
 
   useEffect(() => {
-    console.log('called')
 
     const deviceinfo = async () => {
       try {
         const { deviceId, deviceInfo } = await getDeviceInfo()
-
-        console.log(deviceId, deviceInfo, ' deviceId, deviceInfo')
       } catch (error) {
         console.log(error)
       }
     }
-
+    fetchHearBeat()
     deviceinfo()
   }, [])
 

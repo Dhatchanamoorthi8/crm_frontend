@@ -41,7 +41,8 @@ const userSlice = createSlice({
 
     // Update user data reducer
     updateUserData: (state, action) => {
-      const updatedData = { ...action.payload }
+      //const updatedData = { ...action.payload }
+      const updatedData = { ...state.userData, ...action.payload }
       state.userData = updatedData
       AsyncStorage.setItem('User', JSON.stringify(state.userData))
     }
