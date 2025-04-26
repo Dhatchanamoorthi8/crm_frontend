@@ -79,9 +79,7 @@
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyA3aVYhBvhxeuW9gm8BfsVmdCVmYhHhQ00"
-        }
+    
       },
       "newArchEnabled": true
     },
