@@ -132,7 +132,7 @@ function MainNavigator () {
 
   useEffect(() => {
     dispatch(loadUserData())
-  }, [dispatch])
+  }, [dispatch]) 
 
   const isAuthenticated = useSelector(state => state.user.isAuthenticated)
 
