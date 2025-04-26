@@ -26,7 +26,8 @@ import {
   View,
   Text,
   Button,
-  TouchableOpacity
+  TouchableOpacity,
+  Easing
 } from 'react-native'
 import EnquiryReports from './src/Pages/EnquiryReports'
 import ErrorBoundary from 'react-native-error-boundary'
@@ -42,6 +43,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import ChatScreen from './src/Messages/ChatScreen'
 import ChatHeader from './src/Messages/ChatHeader'
 import AttendaceHistory from './src/Pages/Attendance/AttendaceHistory'
+import NewEnquiry from './src/Forms/NewEnquiry'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -134,17 +136,33 @@ function MainNavigator () {
 
   const isAuthenticated = useSelector(state => state.user.isAuthenticated)
 
+  // const config = {
+  //   animation: 'timing',
+  //   config: {
+  //     stiffness: 500,
+  //     damping: 100,
+  //     mass: 2,
+  //     overshootClamping: true,
+  //     restDisplacementThreshold: 0.01,
+  //     restSpeedThreshold: 0.01
+  //   }
+  // }
+
   const config = {
     animation: 'timing',
     config: {
-      stiffness: 500,
-      damping: 100,
-      mass: 2,
-      overshootClamping: true,
-      restDisplacementThreshold: 0.01,
-      restSpeedThreshold: 0.01
-    }
-  }
+      duration: 300, // Reduce the duration for faster transitions
+      easing: Easing.out(Easing.ease), // Smooth easing for out transitions
+    },
+  };
+  
+  const closeConfig = {
+    animation: 'timing',
+    config: {
+      duration: 300, // Match the duration of the opening transition
+      easing: Easing.in(Easing.ease), // Smooth easing for in transitions
+    },
+  };
 
   const fallbackErrorScreen = ({ resetError }) => (
     <View
@@ -506,7 +524,6 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
-
               <Stack.Screen
                 name='ChatScreen'
                 options={{
@@ -530,7 +547,6 @@ function MainNavigator () {
                   </Suspense>
                 )}
               </Stack.Screen>
-
               <Stack.Screen
                 name='AttendaceHistory'
                 options={{
@@ -568,9 +584,48 @@ function MainNavigator () {
                     <AttendaceHistory route={route} navigation={navigation} />
                   </Suspense>
                 )}
-              </Stack.Screen>
+              </Stack.Screen>    
 
-              
+              <Stack.Screen
+                name='NewEnquiry'
+                options={{
+                  headerShown: true,
+                  title: 'NewEnquiry',
+                  transitionSpec: {
+                    open: config,
+                    close: config
+                  },
+                  headerStyle: {
+                    backgroundColor: '#F4F9FD',
+                    shadowColor: '#fff'
+                  },
+                  headerTitleStyle: {
+                    fontFamily: 'MonaSans_Bold',
+                    marginLeft: 10,
+                    fontSize: 16
+                  },
+                  headerLeft: () => (
+                    <TouchableOpacity
+                      onPress={() => navigation.goBack()}
+                      style={{ marginLeft: 15 }}
+                    >
+                      <Icon as={ChevronLeftIcon} h={'$8'} w={'$8'} />
+                    </TouchableOpacity>
+                  )
+                }}
+              >
+                {({ route, navigation }) => (
+                  <Suspense
+                    fallback={
+                      <ActivityIndicator size='large' color='#0000ff' />
+                    }
+                  >
+                    <NewEnquiry route={route} navigation={navigation} />
+                  </Suspense>
+                )}
+              </Stack.Screen>    
+
+                      
             </Stack.Group>
           </>
         ) : (

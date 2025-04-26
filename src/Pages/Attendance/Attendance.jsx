@@ -77,7 +77,7 @@ const Attendance = () => {
     const weekDates = []
     let daysAdded = 0
 
-    for (let i = 0; daysAdded < 5; i--) {
+    for (let i = 0; daysAdded < 6; i--) {
       const date = new Date()
       date.setDate(today.getDate() + i)
 

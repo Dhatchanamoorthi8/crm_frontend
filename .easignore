@@ -1,0 +1,6 @@
+# .easignore
+
+**/node_modules/**
+**/assets/**
+*.log
+.env

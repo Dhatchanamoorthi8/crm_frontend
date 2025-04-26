@@ -43,6 +43,8 @@ import { Icon } from '@gluestack-ui/themed'
 import { AttachPinSvg } from '@/assets/Icons/SvgIcons'
 import ImagePreview from '../Components/ImagePreview'
 
+import { sendOTP, verifyOTP } from '../utility/firebasePhoneAuth'
+
 const NewEnquiry = () => {
   const focus = useIsFocused()
 
@@ -420,11 +422,11 @@ const NewEnquiry = () => {
                 {/* <Text fontFamily='MonaSans_400Regular'>
                   Company Name <Text color='$red700'>*</Text>
                 </Text> */}
-                <Input mt={'$1'} style={{ height: 45,}}>
+                <Input mt={'$1'} style={{ height: 45 }}>
                   <InputField
                     type='text'
                     value={EnquiryData.company_name}
-                    placeholder="Company Name" 
+                    placeholder='Company Name'
                     onChangeText={text =>
                       handleChangeInput('company_name', text)
                     }
@@ -445,11 +447,11 @@ const NewEnquiry = () => {
                 {/* <Text fontFamily='MonaSans_400Regular'>
                   Client Name <Text color='$red700'>*</Text>
                 </Text> */}
-                <Input mt={'$1'} style={{ height: 45, }}>
+                <Input mt={'$1'} style={{ height: 45 }}>
                   <InputField
                     type='text'
                     value={EnquiryData.client_name}
-                    placeholder="Client Name" 
+                    placeholder='Client Name'
                     onChangeText={text =>
                       handleChangeInput('client_name', text)
                     }
@@ -467,6 +469,40 @@ const NewEnquiry = () => {
               </View>
             </HStack>
 
+            <HStack alignItems='center' space='$2'>
+              <View style={{ flex: 1, gap: 10 }}>
+                <Input mt='$1' style={{ height: 45 }}>
+                  <InputField
+                    type='text'
+                    placeholder='Contact No'
+                    keyboardType='phone-pad'
+                    value={EnquiryData.contact}
+                    onChangeText={text => handleChangeInput('contact', text)}
+                  />
+                </Input>
+
+                {errors.contact && (
+                  <HStack flexDirection='row' gap='$1'>
+                    <FormControlErrorIcon as={AlertCircleIcon} mt='$1' />
+                    <FormControlErrorText>
+                      {errors.contact}
+                    </FormControlErrorText>
+                  </HStack>
+                )}
+              </View>
+
+              <View>
+                <Button
+                  size='sm'
+                  mt='$1'
+                  onPress={() => sendOTP(EnquiryData.contact)}
+                  rounded={'$2xl'}
+                >
+                  <ButtonText fontFamily='MonaSans_Bold'>Verify</ButtonText>
+                </Button>
+              </View>
+            </HStack>
+
             <HStack
               my={'$2'}
               flexDirection='row'
@@ -479,10 +515,10 @@ const NewEnquiry = () => {
                 {/* <Text fontFamily='MonaSans_400Regular'>
                   Contact No <Text color='$red700'>*</Text>
                 </Text> */}
-                <Input mt={'$1'} style={{ height: 45, }}>
+                <Input mt={'$1'} style={{ height: 45 }}>
                   <InputField
                     type='text'
-                    placeholder="Contact No" 
+                    placeholder='Contact No'
                     keyboardType='phone-pad'
                     value={EnquiryData.contact}
                     onChangeText={text => handleChangeInput('contact', text)}
@@ -502,10 +538,10 @@ const NewEnquiry = () => {
                 {/* <Text fontFamily='MonaSans_400Regular'>
                   Email <Text color='$red700'>*</Text>
                 </Text> */}
-                <Input mt={'$1'} style={{ height: 45, }}>
+                <Input mt={'$1'} style={{ height: 45 }}>
                   <InputField
                     type='text'
-                    placeholder="Email Address" 
+                    placeholder='Email Address'
                     value={EnquiryData.email}
                     onChangeText={text => handleChangeInput('email', text)}
                   />
@@ -916,6 +952,8 @@ const NewEnquiry = () => {
           )}
         </Center>
       </View>
+
+      <View id='recaptcha-container' />
 
       <ImagePreview
         imageBase64={EnquiryData.images}

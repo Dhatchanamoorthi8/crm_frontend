@@ -1,9 +1,14 @@
 {
   "expo": {
     "name": "Vingro Crm",
-    "slug": "Vingro Crm",
+    "slug": "vingro-crm",
+    "scheme": "vingrocrm",
     "version": "1.0.0",
-    "orientation": "default",
+    "orientation": "portrait",
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "icon": "./assets/vingrologo.png",
     "assetBundlePatterns": [
       "**/*",
@@ -67,10 +72,11 @@
       "usesCleartextTraffic": true,
       "package": "com.liveattendance.app",
       "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "config": {
         "googleMaps": {
@@ -84,8 +90,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "788e679b-4abb-43a6-82de-1d5b75c676c3"
+        "projectId": "0cdbc3e0-fe13-4b21-b065-3d719105debb"
       }
-    }
+    },
+    "owner": "dhatchana_123"
   }
 }
